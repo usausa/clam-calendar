@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:s="http://smart/maui"
+             xmlns:shell="clr-namespace:Example.Shell"
+             xmlns:modules="clr-namespace:Example.Modules"
+             xmlns:module="clr-namespace:Example.Modules.Calendar"
+             x:Class="Example.Modules.Calendar.CalendarMenuView"
+             x:DataType="{x:Type module:CalendarMenuViewModel}"
+             s:BindingContextResolver.Type="{x:Type module:CalendarMenuViewModel}"
+             shell:ShellProperty.Title="ClamCalendar"
+             shell:ShellProperty.Function1Text="Exit"
+             shell:ShellProperty.Function1Enabled="True">
+
+    <Grid Style="{StaticResource MenuGrid}"
+          RowDefinitions="*,*,*,*,*,*,*">
+        <Button Grid.Row="0"
+                Style="{StaticResource MenuButton}"
+                Command="{Binding ForwardCommand}"
+                CommandParameter="{x:Static modules:ViewId.CalendarBasic}"
+                Text="1.Basic" />
+        <Button Grid.Row="1"
+                Style="{StaticResource MenuButton}"
+                Command="{Binding ForwardCommand}"
+                CommandParameter="{x:Static modules:ViewId.CalendarStyle}"
+                Text="2.Style" />
+        <Button Grid.Row="2"
+                Style="{StaticResource MenuButton}"
+                Command="{Binding ForwardCommand}"
+                CommandParameter="{x:Static modules:ViewId.CalendarStamps}"
+                Text="3.Stamps" />
+        <Button Grid.Row="3"
+                Style="{StaticResource MenuButton}"
+                Command="{Binding ForwardCommand}"
+                CommandParameter="{x:Static modules:ViewId.CalendarBooking}"
+                Text="4.Booking" />
+        <Button Grid.Row="4"
+                Style="{StaticResource MenuButton}"
+                IsEnabled="False"
+                Text="" />
+        <Button Grid.Row="5"
+                Style="{StaticResource MenuButton}"
+                IsEnabled="False"
+                Text="" />
+        <Button Grid.Row="6"
+                Style="{StaticResource MenuButton}"
+                IsEnabled="False"
+                Text="" />
+    </Grid>
+
+</ContentView>

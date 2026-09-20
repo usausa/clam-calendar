@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:s="http://smart/maui"
+             xmlns:clam="clr-namespace:ClamCalendar;assembly=ClamCalendar"
+             xmlns:shell="clr-namespace:Example.Shell"
+             xmlns:module="clr-namespace:Example.Modules.Calendar"
+             x:Class="Example.Modules.Calendar.CalendarBasicView"
+             x:DataType="{x:Type module:CalendarBasicViewModel}"
+             s:BindingContextResolver.Type="{x:Type module:CalendarBasicViewModel}"
+             shell:ShellProperty.Title="Basic"
+             shell:ShellProperty.Function1Text="Back"
+             shell:ShellProperty.Function2Text="Start"
+             shell:ShellProperty.Function3Text="Culture"
+             shell:ShellProperty.Function4Text="Clear"
+             shell:ShellProperty.Function1Enabled="True"
+             shell:ShellProperty.Function2Enabled="True"
+             shell:ShellProperty.Function3Enabled="True"
+             shell:ShellProperty.Function4Enabled="True">
+
+    <Grid Style="{StaticResource FillGrid}"
+          RowDefinitions="*,Auto,Auto,Auto">
+        <clam:ClamCalendarView Grid.Row="0"
+                               Culture="{Binding Culture}"
+                               DayLongPressedCommand="{Binding DayLongPressedCommand}"
+                               DayTappedCommand="{Binding DayTappedCommand}"
+                               DisplayDate="{Binding DisplayDate, Mode=TwoWay}"
+                               DisplayDateChangedCommand="{Binding DisplayDateChangedCommand}"
+                               EventTappedCommand="{Binding EventTappedCommand}"
+                               Events="{Binding Events}"
+                               FirstDayOfWeek="{Binding FirstDayOfWeek}"
+                               FixedWeekRows="{Binding FixedWeekRows}"
+                               Holidays="{Binding Holidays}"
+                               MaxDate="{Binding MaxDate}"
+                               MaxVisibleSlots="{Binding MaxVisibleSlots}"
+                               MinDate="{Binding MinDate}"
+                               OutsideMonthDaysVisible="{Binding OutsideMonthDaysVisible}"
+                               OverflowTappedCommand="{Binding OverflowTappedCommand}"
+                               SelectedDate="{Binding SelectedDate, Mode=TwoWay}"
+                               SelectedDates="{Binding SelectedDates}"
+                               SelectedEndDate="{Binding SelectedEndDate, Mode=TwoWay}"
+                               SelectedStartDate="{Binding SelectedStartDate, Mode=TwoWay}"
+                               SelectionMode="{Binding SelectionMode}"
+                               Stamps="{Binding Stamps}"
+                               TodayButtonVisible="{Binding TodayButtonVisible}" />
+
+        <Label Grid.Row="1"
+               Style="{StaticResource StatusLabel}"
+               Text="{Binding Status}" />
+
+        <Grid Grid.Row="2"
+              Style="{StaticResource SubMenuGrid}"
+              ColumnDefinitions="*,*,*,*">
+            <Button Grid.Column="0"
+                    Style="{StaticResource SubMenuButton}"
+                    Command="{Binding SelectModeCommand}"
+                    CommandParameter="{x:Static clam:CalendarSelectionMode.None}"
+                    Text="None" />
+            <Button Grid.Column="1"
+                    Style="{StaticResource SubMenuButton}"
+                    Command="{Binding SelectModeCommand}"
+                    CommandParameter="{x:Static clam:CalendarSelectionMode.SingleDate}"
+                    Text="Single" />
+            <Button Grid.Column="2"
+                    Style="{StaticResource SubMenuButton}"
+                    Command="{Binding SelectModeCommand}"
+                    CommandParameter="{x:Static clam:CalendarSelectionMode.MultipleDates}"
+                    Text="Multi" />
+            <Button Grid.Column="3"
+                    Style="{StaticResource SubMenuButton}"
+                    Command="{Binding SelectModeCommand}"
+                    CommandParameter="{x:Static clam:CalendarSelectionMode.DateRange}"
+                    Text="Range" />
+        </Grid>
+
+        <Grid Grid.Row="3"
+              Style="{StaticResource SubMenuGrid}"
+              ColumnDefinitions="*,*,*,*">
+            <Button Grid.Column="0"
+                    Style="{StaticResource ToggleButton}"
+                    Command="{Binding ToggleFixedCommand}"
+                    Text="{Binding FixedWeekRows, StringFormat='Fixed {0}'}" />
+            <Button Grid.Column="1"
+                    Style="{StaticResource ToggleButton}"
+                    Command="{Binding ToggleOutsideCommand}"
+                    Text="{Binding OutsideMonthDaysVisible, StringFormat='Outside {0}'}" />
+            <Button Grid.Column="2"
+                    Style="{StaticResource ToggleButton}"
+                    Command="{Binding ToggleSlotsCommand}"
+                    Text="{Binding MaxVisibleSlots, StringFormat='Slots {0}'}" />
+            <Button Grid.Column="3"
+                    Style="{StaticResource ToggleButton}"
+                    Command="{Binding ToggleLimitCommand}"
+                    Text="{Binding LimitText}" />
+        </Grid>
+    </Grid>
+
+</ContentView>

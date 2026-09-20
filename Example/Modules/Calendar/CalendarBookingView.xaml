@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:s="http://smart/maui"
+             xmlns:clam="clr-namespace:ClamCalendar;assembly=ClamCalendar"
+             xmlns:shell="clr-namespace:Example.Shell"
+             xmlns:module="clr-namespace:Example.Modules.Calendar"
+             x:Class="Example.Modules.Calendar.CalendarBookingView"
+             x:DataType="{x:Type module:CalendarBookingViewModel}"
+             s:BindingContextResolver.Type="{x:Type module:CalendarBookingViewModel}"
+             shell:ShellProperty.Title="Booking"
+             shell:ShellProperty.Function1Text="Back"
+             shell:ShellProperty.Function2Text="Plan"
+             shell:ShellProperty.Function3Text="Limit"
+             shell:ShellProperty.Function4Text="Clear"
+             shell:ShellProperty.Function1Enabled="True"
+             shell:ShellProperty.Function2Enabled="True"
+             shell:ShellProperty.Function3Enabled="True"
+             shell:ShellProperty.Function4Enabled="True">
+
+    <Grid Style="{StaticResource FillGrid}"
+          RowDefinitions="*,Auto,Auto,Auto,Auto">
+        <!-- Today and the next months are bookable (MinDate / MaxDate), the sold-out days are disabled and a stay is limited by MaxSelectableDays -->
+        <clam:ClamCalendarView Grid.Row="0"
+                               AllowDeselect="False"
+                               DayTappedCommand="{Binding DayTappedCommand}"
+                               DisabledDates="{Binding SoldOutDates}"
+                               DisplayDate="{Binding DisplayDate, Mode=TwoWay}"
+                               DisplayDateChangedCommand="{Binding DisplayDateChangedCommand}"
+                               Holidays="{Binding Holidays}"
+                               MaxDate="{Binding MaxDate}"
+                               MaxSelectableDays="{Binding MaxSelectableDays}"
+                               MinDate="{Binding MinDate}"
+                               SelectedDate="{Binding SelectedDate, Mode=TwoWay}"
+                               SelectedEndDate="{Binding SelectedEndDate, Mode=TwoWay}"
+                               SelectedStartDate="{Binding SelectedStartDate, Mode=TwoWay}"
+                               SelectionMode="{Binding SelectionMode}"
+                               Stamps="{Binding Stamps}"
+                               TodayButtonVisible="True" />
+
+        <Label Grid.Row="1"
+               Style="{StaticResource TitleLabel}"
+               Text="{Binding PlanText}" />
+        <Label Grid.Row="2"
+               Style="{StaticResource ValueLabel}"
+               Text="{Binding DatesText}" />
+        <Label Grid.Row="3"
+               Style="{StaticResource ValueLabel}"
+               Text="{Binding PriceText}" />
+
+        <Label Grid.Row="4"
+               Style="{StaticResource StatusLabel}"
+               Text="{Binding Status}" />
+    </Grid>
+
+</ContentView>
