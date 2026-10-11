@@ -37,7 +37,7 @@ public sealed partial class CalendarStampsViewModel : AppViewModelBase
 
     public CalendarStampsViewModel()
     {
-        DisplayDateChangedCommand = MakeDelegateCommand<CalendarDisplayDateChangedEventArgs>(Load, CommandBehavior.AllowBusyExecution);
+        DisplayDateChangedCommand = MakeDelegateCommand<CalendarDisplayDateChangedEventArgs>(CommandMode.Simple, Load);
         DayTappedCommand = MakeDelegateCommand<CalendarDayEventArgs>(AddStamp);
         DayLongPressedCommand = MakeDelegateCommand<CalendarDayEventArgs>(RemoveStamps);
     }

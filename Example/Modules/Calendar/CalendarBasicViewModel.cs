@@ -89,7 +89,7 @@ public sealed partial class CalendarBasicViewModel : AppViewModelBase
     {
         // The view reports the visible range whenever the month changes; the events of that range are loaded here
         // The first report arrives while the navigation still holds the busy state, so the command must run while busy
-        DisplayDateChangedCommand = MakeDelegateCommand<CalendarDisplayDateChangedEventArgs>(Load, CommandBehavior.AllowBusyExecution);
+        DisplayDateChangedCommand = MakeDelegateCommand<CalendarDisplayDateChangedEventArgs>(CommandMode.Simple, Load);
         DayTappedCommand = MakeDelegateCommand<CalendarDayEventArgs>(x => Status = $"Tapped {x.Date:yyyy/MM/dd} ({x.Day.Kind}) events={x.Day.Events.Count}");
         DayLongPressedCommand = MakeDelegateCommand<CalendarDayEventArgs>(x => Status = $"Long pressed {x.Date:yyyy/MM/dd}");
         EventTappedCommand = MakeDelegateCommand<CalendarEventEventArgs>(x => Status = $"Event {x.Event.Title} ({x.Event.StartDate:MM/dd} - {x.Event.EndDate:MM/dd}) on {x.Day.Date:MM/dd}");

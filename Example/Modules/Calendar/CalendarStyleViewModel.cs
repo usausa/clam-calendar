@@ -50,7 +50,7 @@ public sealed partial class CalendarStyleViewModel : AppViewModelBase
 
     public CalendarStyleViewModel()
     {
-        DisplayDateChangedCommand = MakeDelegateCommand<CalendarDisplayDateChangedEventArgs>(Load, CommandBehavior.AllowBusyExecution);
+        DisplayDateChangedCommand = MakeDelegateCommand<CalendarDisplayDateChangedEventArgs>(CommandMode.Simple, Load);
         PrevCommand = MakeDelegateCommand(() => DisplayDate = DisplayDate.AddMonths(-1));
         NextCommand = MakeDelegateCommand(() => DisplayDate = DisplayDate.AddMonths(1));
     }

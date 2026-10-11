@@ -78,7 +78,7 @@ public sealed partial class CalendarBookingViewModel : AppViewModelBase
 
     public CalendarBookingViewModel()
     {
-        DisplayDateChangedCommand = MakeDelegateCommand<CalendarDisplayDateChangedEventArgs>(Load, CommandBehavior.AllowBusyExecution);
+        DisplayDateChangedCommand = MakeDelegateCommand<CalendarDisplayDateChangedEventArgs>(CommandMode.Simple, Load);
         DayTappedCommand = MakeDelegateCommand<CalendarDayEventArgs>(OnDayTapped);
 
         // The view writes the selection back through the TwoWay bindings
