@@ -1,9 +1,12 @@
 namespace ClamCalendar.Rendering;
 
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 using ClamCalendar.Layout;
+
+using SkiaExtension;
 
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
@@ -13,9 +16,14 @@ internal sealed class CalendarRenderer : IDisposable
     private const float LineWidth = 0.5f;
 
     private readonly CalendarStyle style;
-    private readonly CalendarFontResolver fonts;
+    private readonly FontResolver fonts;
     private readonly SKPaint paint = new() { IsAntialias = true };
     private readonly SKPaint fillPaint = new() { IsAntialias = false };
+    private readonly Dictionary<(DayOfWeek DayOfWeek, CultureInfo Culture, CalendarWeekdayNameFormat Format), string> weekdayNames = [];
+    private readonly ConditionalWeakTable<CalendarEvent, string> eventTexts = [];
+    private readonly Dictionary<int, string> overflowTexts = [];
+    private (int Year, int Month, CultureInfo? Culture, CalendarTextFormat? Format) titleKey;
+    private string title = String.Empty;
 
     public int Measurements => fonts.Measurements;
 
@@ -24,7 +32,7 @@ internal sealed class CalendarRenderer : IDisposable
         ArgumentNullException.ThrowIfNull(style);
         style.Validate();
         this.style = style;
-        fonts = new CalendarFontResolver(style.FontFamily);
+        fonts = new FontResolver(style.FontFamily);
     }
 
     public void Dispose()
@@ -123,7 +131,7 @@ internal sealed class CalendarRenderer : IDisposable
             DrawText(canvas, layout.TodayButtonBounds, state.TodayButtonText, TextAlignment.Center, style.DateNumberFontSize, false, style.NavigationButtonColor, style.EventPadding);
         }
 
-        DrawText(canvas, layout.TitleBounds, FormatTitle(layout.Month, state.Culture, state.HeaderFormat), TextAlignment.Center, style.HeaderFontSize, true, style.HeaderTextColor, style.EventPadding);
+        DrawText(canvas, layout.TitleBounds, GetTitle(layout.Month, state.Culture, state.HeaderFormat), TextAlignment.Center, style.HeaderFontSize, true, style.HeaderTextColor, style.EventPadding);
         DrawHorizontalLine(canvas, bounds.X, bounds.Right, bounds.Bottom);
     }
 
@@ -146,7 +154,7 @@ internal sealed class CalendarRenderer : IDisposable
                 DayOfWeek.Sunday => style.SundayHeaderTextColor,
                 _ => style.WeekdayHeaderTextColor
             };
-            DrawText(canvas, layout.GetWeekdayHeaderCellBounds(column), FormatWeekdayName(dayOfWeek, state.Culture, state.WeekdayNameFormat), TextAlignment.Center, style.WeekdayHeaderFontSize, false, color, 1);
+            DrawText(canvas, layout.GetWeekdayHeaderCellBounds(column), GetWeekdayName(dayOfWeek, state.Culture, state.WeekdayNameFormat), TextAlignment.Center, style.WeekdayHeaderFontSize, false, color, 1);
         }
 
         DrawHorizontalLine(canvas, bounds.X, bounds.Right, bounds.Bottom);
@@ -167,7 +175,7 @@ internal sealed class CalendarRenderer : IDisposable
         if (layered)
         {
             using var layerPaint = new SKPaint();
-            layerPaint.Color = SKColors.Black.WithAlpha((byte)(Math.Clamp(state.SlideOpacity, 0, 1) * 255));
+            layerPaint.Color = SKColors.Black.WithOpacity(state.SlideOpacity);
             canvas.SaveLayer(layerPaint);
         }
 
@@ -293,38 +301,40 @@ internal sealed class CalendarRenderer : IDisposable
         }
 
         var edge = style.StampMarginEdge;
-        foreach (var stamp in day.Stamps)
+        var stamps = day.Stamps;
+        // ReSharper disable once ForCanBeConvertedToForeach
+        for (var i = 0; i < stamps.Count; i++)
         {
+            var stamp = stamps[i];
             if (!Single.IsFinite(stamp.FontSize) || (stamp.FontSize <= 0) || String.IsNullOrEmpty(stamp.Glyph))
             {
                 continue;
             }
 
-            var run = fonts.Shape(stamp.Glyph, stamp.FontSize, false);
-            if (run.Parts.Count == 0)
+            var text = fonts.CreateText(stamp.Glyph, stamp.FontSize, false);
+            if (text.Segments.Count == 0)
             {
                 continue;
             }
 
-            var metrics = run.Parts[0].Font.Metrics;
-            var textHeight = metrics.Descent - metrics.Ascent;
-            var x = stamp.Position switch
+            var metrics = text.Segments[0].Font.Metrics;
+            var (x, textAlign) = stamp.Position switch
             {
-                CalendarStampPosition.TopLeft or CalendarStampPosition.BottomLeft => cell.X + edge,
-                CalendarStampPosition.TopRight or CalendarStampPosition.BottomRight => cell.Right - edge - run.Width,
-                _ => cell.CenterX - (run.Width / 2)
+                CalendarStampPosition.TopLeft or CalendarStampPosition.BottomLeft => (cell.X + edge, SKTextAlign.Left),
+                CalendarStampPosition.TopRight or CalendarStampPosition.BottomRight => (cell.Right - edge, SKTextAlign.Right),
+                _ => (cell.CenterX, SKTextAlign.Center)
             };
             var baseline = stamp.Position switch
             {
-                CalendarStampPosition.TopLeft or CalendarStampPosition.TopCenter or CalendarStampPosition.TopRight => cell.Y + edge - metrics.Ascent,
-                CalendarStampPosition.BottomLeft or CalendarStampPosition.BottomCenter or CalendarStampPosition.BottomRight => cell.Bottom - edge - metrics.Descent,
-                _ => cell.Y + ((cell.Height - textHeight) / 2) - metrics.Ascent
+                CalendarStampPosition.TopLeft or CalendarStampPosition.TopCenter or CalendarStampPosition.TopRight => metrics.GetTopBaseline((float)(cell.Y + edge)),
+                CalendarStampPosition.BottomLeft or CalendarStampPosition.BottomCenter or CalendarStampPosition.BottomRight => metrics.GetBottomBaseline((float)(cell.Bottom - edge)),
+                _ => metrics.GetCenterBaseline((float)cell.CenterY)
             };
             paint.Style = SKPaintStyle.Fill;
-            paint.Color = SKColors.Black.WithAlpha((byte)(Math.Clamp(stamp.Opacity, 0, 1) * 255));
+            paint.Color = SKColors.Black.WithOpacity(stamp.Opacity);
             canvas.Save();
             canvas.ClipRect(ToSkRect(cell));
-            CalendarFontResolver.Draw(canvas, run, (float)x, (float)baseline, paint);
+            canvas.DrawText(text, (float)x, baseline, textAlign, paint);
             canvas.Restore();
         }
     }
@@ -338,8 +348,11 @@ internal sealed class CalendarRenderer : IDisposable
 
         canvas.Save();
         canvas.ClipRect(ToSkRect(weekBounds));
-        foreach (var placement in week.Placements)
+        var placements = week.Placements;
+        // ReSharper disable once ForCanBeConvertedToForeach
+        for (var i = 0; i < placements.Count; i++)
         {
+            var placement = placements[i];
             var rect = layout.GetEventBounds(weekIndex, placement);
             if (rect.IsEmpty)
             {
@@ -359,7 +372,7 @@ internal sealed class CalendarRenderer : IDisposable
                 canvas.DrawRoundRect(roundRect, fillPaint);
             }
 
-            DrawText(canvas, rect, FormatEventText(calendarEvent), TextAlignment.Start, style.EventFontSize, false, calendarEvent.TextColor, style.EventPadding);
+            DrawText(canvas, rect, eventTexts.GetValue(calendarEvent, FormatEventText), TextAlignment.Start, style.EventFontSize, false, calendarEvent.TextColor, style.EventPadding);
         }
 
         for (var column = 0; column < CalendarLayout.DaysPerWeek; column++)
@@ -367,7 +380,7 @@ internal sealed class CalendarRenderer : IDisposable
             var day = week.Days[column];
             if (day.HiddenEventCount > 0)
             {
-                DrawText(canvas, layout.GetOverflowBounds(weekIndex, column), "+" + day.HiddenEventCount.ToString(CultureInfo.InvariantCulture), TextAlignment.Start, style.EventFontSize, false, style.OverflowTextColor, style.EventPadding);
+                DrawText(canvas, layout.GetOverflowBounds(weekIndex, column), GetOverflowText(day.HiddenEventCount), TextAlignment.Start, style.EventFontSize, false, style.OverflowTextColor, style.EventPadding);
             }
         }
 
@@ -390,6 +403,41 @@ internal sealed class CalendarRenderer : IDisposable
         };
     }
 
+    private string GetTitle(CalendarMonth month, CultureInfo culture, CalendarTextFormat format)
+    {
+        var key = (month.Year, month.Month, culture, format);
+        if (titleKey != key)
+        {
+            title = FormatTitle(month, culture, format);
+            titleKey = key;
+        }
+
+        return title;
+    }
+
+    private string GetWeekdayName(DayOfWeek dayOfWeek, CultureInfo culture, CalendarWeekdayNameFormat format)
+    {
+        var key = (dayOfWeek, culture, format);
+        if (!weekdayNames.TryGetValue(key, out var name))
+        {
+            name = FormatWeekdayName(dayOfWeek, culture, format);
+            weekdayNames[key] = name;
+        }
+
+        return name;
+    }
+
+    private string GetOverflowText(int count)
+    {
+        if (!overflowTexts.TryGetValue(count, out var text))
+        {
+            text = "+" + count.ToString(CultureInfo.InvariantCulture);
+            overflowTexts[count] = text;
+        }
+
+        return text;
+    }
+
     private void DrawText(SKCanvas canvas, CalendarRect rect, string text, TextAlignment alignment, float size, bool bold, Color color, float padding = 0)
     {
         var available = (float)rect.Width - (padding * 2);
@@ -398,25 +446,24 @@ internal sealed class CalendarRenderer : IDisposable
             return;
         }
 
-        var run = fonts.Shape(text, size, bold, available);
-        if (run.Parts.Count == 0)
+        var drawableText = fonts.CreateText(text, size, bold, available);
+        if (drawableText.Segments.Count == 0)
         {
             return;
         }
 
-        var x = alignment switch
+        var (x, textAlign) = alignment switch
         {
-            TextAlignment.Center => rect.X + ((rect.Width - run.Width) / 2),
-            TextAlignment.End => rect.Right - padding - run.Width,
-            _ => rect.X + padding
+            TextAlignment.Center => (rect.CenterX, SKTextAlign.Center),
+            TextAlignment.End => (rect.Right - padding, SKTextAlign.Right),
+            _ => (rect.X + padding, SKTextAlign.Left)
         };
-        var metrics = fonts.GetMetrics(size, bold);
-        var baseline = rect.Y + ((rect.Height - (metrics.Descent - metrics.Ascent)) / 2) - metrics.Ascent;
+        var baseline = fonts.GetMetrics(size, bold).GetCenterBaseline((float)rect.CenterY);
         paint.Style = SKPaintStyle.Fill;
         paint.Color = color.ToSKColor();
         canvas.Save();
         canvas.ClipRect(ToSkRect(rect));
-        CalendarFontResolver.Draw(canvas, run, (float)x, (float)baseline, paint);
+        canvas.DrawText(drawableText, (float)x, baseline, textAlign, paint);
         canvas.Restore();
     }
 

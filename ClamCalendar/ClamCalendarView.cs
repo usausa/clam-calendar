@@ -36,6 +36,9 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
     private readonly CalendarCollectionWatcher eventsWatcher;
     private readonly CalendarCollectionWatcher stampsWatcher;
     private readonly CalendarCollectionWatcher holidaysWatcher;
+    private readonly Func<DateOnly, bool> isDateSelected;
+    private readonly Func<DateOnly, bool> isDateInSelectedRange;
+    private readonly Func<DateOnly, bool> isDateDisabled;
     private CalendarRenderer? renderer;
     private CalendarTextFormat? headerFormat;
     private CalendarLayout? currentLayout;
@@ -180,6 +183,9 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
         eventsWatcher = new CalendarCollectionWatcher(RebuildMonth);
         stampsWatcher = new CalendarCollectionWatcher(RebuildMonth);
         holidaysWatcher = new CalendarCollectionWatcher(RebuildMonth);
+        isDateSelected = IsDateSelected;
+        isDateInSelectedRange = IsDateInSelectedRange;
+        isDateDisabled = IsDateDisabled;
         disabledDatesWatcher = new CalendarCollectionWatcher(UpdateDisabledDates);
         selectedDatesWatcher = new CalendarCollectionWatcher(OnSelectedDatesCollectionChanged);
         selectedDatesWatcher.Watch(SelectedDates);
@@ -326,9 +332,9 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
         CanNavigateForward = CanNavigate(1),
         MonthIndicatorVisible = MonthIndicatorVisible,
         OutsideMonthDaysVisible = OutsideMonthDaysVisible,
-        IsSelected = IsDateSelected,
-        IsInRange = IsDateInSelectedRange,
-        IsDisabled = IsDateDisabled,
+        IsSelected = isDateSelected,
+        IsInRange = isDateInSelectedRange,
+        IsDisabled = isDateDisabled,
         SlideOffset = SlideOffset,
         SlideOpacity = SlideOpacity
     };

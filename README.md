@@ -44,12 +44,13 @@ calendar.Stamps = [new CalendarStamp { Date = new DateOnly(2026, 9, 13), Glyph =
 calendar.DayTapped += (_, e) => Debug.WriteLine(e.Date);
 ```
 
-Text is drawn with the `sans-serif` system font; characters it lacks are resolved per character through `CalendarFonts`.  
+Text is drawn with the `sans-serif` system font; characters it lacks are resolved per character through `FallbackFonts` of [SkiaExtension](https://github.com/usausa/skia-extension).  
 Set a bundled font as a fallback at startup when the device fonts do not cover the language.  
+The language hints follow the UI language of the device unless `Languages` is set.  
 
 ```csharp
-CalendarFonts.Languages = ["ja"];
-CalendarFonts.Fallbacks = [SKTypeface.FromStream(await FileSystem.OpenAppPackageFileAsync("NotoSansJP-Regular.ttf"))];
+FallbackFonts.Languages = ["ja"];
+FallbackFonts.Typefaces = [SKTypeface.FromStream(await FileSystem.OpenAppPackageFileAsync("NotoSansJP-Regular.ttf"))];
 ```
 
 Swipe horizontally to move between months, tap a day to select it and long press a day to get `DayLongPressed`.  
@@ -145,7 +146,7 @@ Holiday calculation, event storage and navigation belong to the application.
 | **Selection** | None / single date / multiple dates / date range, deselect and count limits, disabled dates and date limits |
 | **Navigation** | Header buttons, today button, horizontal swipe with a slide animation, limits by `MinDate` / `MaxDate`, visible range notification |
 | **Styling** | Fonts, sizes and colors in `CalendarStyle`, usable as a XAML resource |
-| **Fonts** | Per character fallback to `CalendarFonts` typefaces and system fonts, emoji sequences included |
+| **Fonts** | Per character fallback to the `FallbackFonts` typefaces of SkiaExtension and system fonts, emoji sequences included |
 | **Input** | Tap, long press, swipe, commands for MVVM, parent scroll handed over on vertical movement |
 
 ## 📖 API

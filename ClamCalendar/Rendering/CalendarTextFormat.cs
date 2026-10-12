@@ -2,7 +2,7 @@ namespace ClamCalendar.Rendering;
 
 using System.Text;
 
-internal sealed class CalendarTextFormat
+internal sealed class CalendarTextFormat : IEquatable<CalendarTextFormat>
 {
     private readonly string? format;
     private readonly CompositeFormat? composite;
@@ -45,4 +45,10 @@ internal sealed class CalendarTextFormat
 
         return value is IFormattable formattable ? formattable.ToString(format, provider) : Convert.ToString(value, provider) ?? String.Empty;
     }
+
+    public bool Equals(CalendarTextFormat? other) => (other is not null) && (format == other.format) && (composite?.Format == other.composite?.Format);
+
+    public override bool Equals(object? obj) => (obj is CalendarTextFormat other) && Equals(other);
+
+    public override int GetHashCode() => HashCode.Combine(format, composite?.Format);
 }

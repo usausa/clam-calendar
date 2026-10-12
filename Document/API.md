@@ -83,7 +83,7 @@ Sizes are in DIP.
 
 | Name | Type | Default | Description |
 |---|---|---|---|
-| `FontFamily` | `string` | `sans-serif` | Primary font; missing characters are resolved through `CalendarFonts` |
+| `FontFamily` | `string` | `sans-serif` | Primary font; missing characters are resolved through `FallbackFonts` of SkiaExtension |
 | `HeaderFontSize`, `WeekdayHeaderFontSize`, `DateNumberFontSize`, `EventFontSize`, `DayLabelFontSize`, `MonthIndicatorFontSize` | `float` | `20`, `12`, `14`, `11`, `9`, `120` | Font sizes |
 | `HeaderHeight`, `WeekdayHeaderHeight` | `float` | `48`, `32` | Heights of the header rows |
 | `DateRowHeight` | `float` | `28` | Upper part of the cell with the date number and the label |
@@ -105,21 +105,15 @@ Sizes are in DIP.
 | `WeekdayHeaderBackground`, `WeekdayHeaderTextColor`, `SaturdayHeaderTextColor`, `SundayHeaderTextColor` | `Color` | `White`, `#333333`, `#2196F3`, `#E53935` | Weekday row |
 | `MonthIndicatorColor` | `Color` | `#10000000` | Month number watermark |
 
-## 🔤 CalendarFonts
+## 🔤 Fonts
 
-Global font fallback settings, read when a view creates its renderer.  
-Set them at startup, before the first view is shown.  
-Emoji presentation sequences (a character followed by U+FE0F) are matched against the emoji font first.  
-Variation selectors and zero width joiners only steer the font choice and are not drawn.  
-
-| Name | Type | Default | Description |
-|---|---|---|---|
-| `Languages` | `IReadOnlyList<string>` | `["ja"]` | BCP-47 tags for the per character system font lookup; the tag selects the glyph variant of shared CJK ideographs |
-| `Fallbacks` | `IReadOnlyList<SKTypeface>` | `[]` | Typefaces tried before the system lookup, for example a bundled font; they stay owned by the caller |
+Per character font fallback comes from [SkiaExtension](https://github.com/usausa/skia-extension).  
+Configure it with `FallbackFonts` in the `SkiaExtension` namespace at startup, before the first view is shown.  
+`Languages` defaults to the UI language of the device.  
 
 ```csharp
-CalendarFonts.Languages = ["ja", "en"];
-CalendarFonts.Fallbacks = [SKTypeface.FromStream(await FileSystem.OpenAppPackageFileAsync("NotoSansJP-Regular.ttf"))];
+FallbackFonts.Languages = ["ja", "en"];
+FallbackFonts.Typefaces = [SKTypeface.FromStream(await FileSystem.OpenAppPackageFileAsync("NotoSansJP-Regular.ttf"))];
 ```
 
 ## 🏗 CalendarMonthBuilder

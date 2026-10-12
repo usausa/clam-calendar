@@ -43,4 +43,16 @@ public sealed class CalendarTextFormatTests
         // Act & Assert
         Assert.Throws<FormatException>(static () => CalendarTextFormat.Parse("{0:N0"));
     }
+
+    [Fact]
+    public void FormatsParsedFromTheSameTextAreEqual()
+    {
+        // Act & Assert
+        Assert.Equal(CalendarTextFormat.Parse("{0:N0} pcs"), CalendarTextFormat.Parse("{0:N0} pcs"));
+        Assert.Equal(CalendarTextFormat.Parse("{0:N0} pcs").GetHashCode(), CalendarTextFormat.Parse("{0:N0} pcs").GetHashCode());
+        Assert.Equal(CalendarTextFormat.Parse("N0"), CalendarTextFormat.Parse("N0"));
+        Assert.NotEqual(CalendarTextFormat.Parse("N0"), CalendarTextFormat.Parse("N1"));
+        Assert.NotEqual(CalendarTextFormat.Parse("{0:N0}"), CalendarTextFormat.Parse("N0"));
+        Assert.NotEqual(CalendarTextFormat.Default, CalendarTextFormat.Parse("N0"));
+    }
 }
