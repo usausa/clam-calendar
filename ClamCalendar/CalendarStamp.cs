@@ -10,9 +10,9 @@ public sealed class CalendarStamp
 
     public CalendarStampPosition Position { get; init; } = CalendarStampPosition.Center;
 
-    public float FontSize { get; init; } = 28;
+    public double FontSize { get; init; } = 28;
 
-    public float Opacity { get; init; } = 1;
+    public double Opacity { get; init; } = 1;
 
     public object? Tag { get; init; }
 }

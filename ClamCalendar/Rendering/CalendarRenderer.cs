@@ -306,12 +306,12 @@ internal sealed class CalendarRenderer : IDisposable
         for (var i = 0; i < stamps.Count; i++)
         {
             var stamp = stamps[i];
-            if (!Single.IsFinite(stamp.FontSize) || (stamp.FontSize <= 0) || String.IsNullOrEmpty(stamp.Glyph))
+            if (!Double.IsFinite(stamp.FontSize) || (stamp.FontSize <= 0) || String.IsNullOrEmpty(stamp.Glyph))
             {
                 continue;
             }
 
-            var text = fonts.CreateText(stamp.Glyph, stamp.FontSize, false);
+            var text = fonts.CreateText(stamp.Glyph, (float)stamp.FontSize, false);
             if (text.Segments.Count == 0)
             {
                 continue;
@@ -331,7 +331,7 @@ internal sealed class CalendarRenderer : IDisposable
                 _ => metrics.GetCenterBaseline((float)cell.CenterY)
             };
             paint.Style = SKPaintStyle.Fill;
-            paint.Color = SKColors.Black.WithOpacity(stamp.Opacity);
+            paint.Color = SKColors.Black.WithOpacity((float)stamp.Opacity);
             canvas.Save();
             canvas.ClipRect(ToSkRect(cell));
             canvas.DrawText(text, (float)x, baseline, textAlign, paint);
@@ -362,8 +362,8 @@ internal sealed class CalendarRenderer : IDisposable
             var calendarEvent = placement.Event;
             if (calendarEvent.Style == CalendarEventStyle.Filled)
             {
-                var left = placement.ContinuesFromPreviousWeek ? 0 : style.EventCornerRadius;
-                var right = placement.ContinuesToNextWeek ? 0 : style.EventCornerRadius;
+                var left = (float)(placement.ContinuesFromPreviousWeek ? 0 : style.EventCornerRadius);
+                var right = (float)(placement.ContinuesToNextWeek ? 0 : style.EventCornerRadius);
                 var marginLeft = placement.ContinuesFromPreviousWeek ? 0 : 1;
                 var marginRight = placement.ContinuesToNextWeek ? 0 : 1;
                 using var roundRect = new SKRoundRect();
@@ -438,15 +438,15 @@ internal sealed class CalendarRenderer : IDisposable
         return text;
     }
 
-    private void DrawText(SKCanvas canvas, CalendarRect rect, string text, TextAlignment alignment, float size, bool bold, Color color, float padding = 0)
+    private void DrawText(SKCanvas canvas, CalendarRect rect, string text, TextAlignment alignment, double size, bool bold, Color color, double padding = 0)
     {
-        var available = (float)rect.Width - (padding * 2);
+        var available = (float)(rect.Width - (padding * 2));
         if (rect.IsEmpty || (available <= 0) || (text.Length == 0))
         {
             return;
         }
 
-        var drawableText = fonts.CreateText(text, size, bold, available);
+        var drawableText = fonts.CreateText(text, (float)size, bold, available);
         if (drawableText.Segments.Count == 0)
         {
             return;
@@ -458,7 +458,7 @@ internal sealed class CalendarRenderer : IDisposable
             TextAlignment.End => (rect.Right - padding, SKTextAlign.Right),
             _ => (rect.X + padding, SKTextAlign.Left)
         };
-        var baseline = fonts.GetMetrics(size, bold).GetCenterBaseline((float)rect.CenterY);
+        var baseline = fonts.GetMetrics((float)size, bold).GetCenterBaseline((float)rect.CenterY);
         paint.Style = SKPaintStyle.Fill;
         paint.Color = color.ToSKColor();
         canvas.Save();

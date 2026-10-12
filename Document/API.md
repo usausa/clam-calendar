@@ -84,14 +84,14 @@ Sizes are in DIP.
 | Name | Type | Default | Description |
 |---|---|---|---|
 | `FontFamily` | `string` | `sans-serif` | Primary font; missing characters are resolved through `FallbackFonts` of SkiaExtension |
-| `HeaderFontSize`, `WeekdayHeaderFontSize`, `DateNumberFontSize`, `EventFontSize`, `DayLabelFontSize`, `MonthIndicatorFontSize` | `float` | `20`, `12`, `14`, `11`, `9`, `120` | Font sizes |
-| `HeaderHeight`, `WeekdayHeaderHeight` | `float` | `48`, `32` | Heights of the header rows |
-| `DateRowHeight` | `float` | `28` | Upper part of the cell with the date number and the label |
-| `SlotRowHeight`, `EventRowHeight` | `float` | `18`, `16` | Pitch of the event rows and height of the bars |
-| `DateNumberSize`, `DateNumberMargin` | `float` | `24`, `4` | Size and offset of the date number bubble |
-| `StampMarginEdge` | `float` | `2` | Distance of the stamps from the cell edge |
-| `EventCornerRadius`, `EventPadding` | `float` | `4`, `4` | Corner radius of the bars and the text padding |
-| `NavigationButtonWidth`, `TodayButtonWidth` | `float` | `44`, `64` | Widths of the header buttons |
+| `HeaderFontSize`, `WeekdayHeaderFontSize`, `DateNumberFontSize`, `EventFontSize`, `DayLabelFontSize`, `MonthIndicatorFontSize` | `double` | `20`, `12`, `14`, `11`, `9`, `120` | Font sizes |
+| `HeaderHeight`, `WeekdayHeaderHeight` | `double` | `48`, `32` | Heights of the header rows |
+| `DateRowHeight` | `double` | `28` | Upper part of the cell with the date number and the label |
+| `SlotRowHeight`, `EventRowHeight` | `double` | `18`, `16` | Pitch of the event rows and height of the bars |
+| `DateNumberSize`, `DateNumberMargin` | `double` | `24`, `4` | Size and offset of the date number bubble |
+| `StampMarginEdge` | `double` | `2` | Distance of the stamps from the cell edge |
+| `EventCornerRadius`, `EventPadding` | `double` | `4`, `4` | Corner radius of the bars and the text padding |
+| `NavigationButtonWidth`, `TodayButtonWidth` | `double` | `44`, `64` | Widths of the header buttons |
 | `Background`, `GridLineColor` | `Color` | `White`, `#E0E0E0` | Body background and cell lines |
 | `WeekdayTextColor`, `SaturdayTextColor`, `SundayTextColor`, `HolidayTextColor` | `Color` | `#1F1F1F`, `#2196F3`, `#E53935`, `#E53935` | Date number colors by day kind |
 | `OutsideMonthTextColor`, `OutsideMonthBackground` | `Color` | `#BDBDBD`, `#F2F2F2` | Days of the neighboring months |
@@ -188,8 +188,8 @@ With `MaxVisibleSlots`, events that do not fit are dropped from the placements a
 | `Date` | `DateOnly` | required | Day |
 | `Glyph` | `string` | required | Emoji or text |
 | `Position` | `CalendarStampPosition` | `Center` | `Center`, `TopLeft`, `TopCenter`, `TopRight`, `BottomLeft`, `BottomCenter` or `BottomRight` |
-| `FontSize` | `float` | `28` | Size in DIP |
-| `Opacity` | `float` | `1` | Alpha of the glyph |
+| `FontSize` | `double` | `28` | Size in DIP |
+| `Opacity` | `double` | `1` | Alpha of the glyph |
 | `Tag` | `object?` | `null` | Application data |
 
 ### CalendarEventPlacement

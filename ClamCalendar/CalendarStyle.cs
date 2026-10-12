@@ -5,41 +5,41 @@ public sealed record CalendarStyle
 {
     public string FontFamily { get; set; } = "sans-serif";
 
-    public float HeaderFontSize { get; set; } = 20;
+    public double HeaderFontSize { get; set; } = 20;
 
-    public float WeekdayHeaderFontSize { get; set; } = 12;
+    public double WeekdayHeaderFontSize { get; set; } = 12;
 
-    public float DateNumberFontSize { get; set; } = 14;
+    public double DateNumberFontSize { get; set; } = 14;
 
-    public float EventFontSize { get; set; } = 11;
+    public double EventFontSize { get; set; } = 11;
 
-    public float DayLabelFontSize { get; set; } = 9;
+    public double DayLabelFontSize { get; set; } = 9;
 
-    public float MonthIndicatorFontSize { get; set; } = 120;
+    public double MonthIndicatorFontSize { get; set; } = 120;
 
-    public float HeaderHeight { get; set; } = 48;
+    public double HeaderHeight { get; set; } = 48;
 
-    public float WeekdayHeaderHeight { get; set; } = 32;
+    public double WeekdayHeaderHeight { get; set; } = 32;
 
-    public float DateRowHeight { get; set; } = 28;
+    public double DateRowHeight { get; set; } = 28;
 
-    public float SlotRowHeight { get; set; } = 18;
+    public double SlotRowHeight { get; set; } = 18;
 
-    public float EventRowHeight { get; set; } = 16;
+    public double EventRowHeight { get; set; } = 16;
 
-    public float DateNumberSize { get; set; } = 24;
+    public double DateNumberSize { get; set; } = 24;
 
-    public float DateNumberMargin { get; set; } = 4;
+    public double DateNumberMargin { get; set; } = 4;
 
-    public float StampMarginEdge { get; set; } = 2;
+    public double StampMarginEdge { get; set; } = 2;
 
-    public float EventCornerRadius { get; set; } = 4;
+    public double EventCornerRadius { get; set; } = 4;
 
-    public float EventPadding { get; set; } = 4;
+    public double EventPadding { get; set; } = 4;
 
-    public float NavigationButtonWidth { get; set; } = 44;
+    public double NavigationButtonWidth { get; set; } = 44;
 
-    public float TodayButtonWidth { get; set; } = 64;
+    public double TodayButtonWidth { get; set; } = 64;
 
     public Color Background { get; set; } = Colors.White;
 
@@ -118,7 +118,7 @@ public sealed record CalendarStyle
         }
     }
 
-    private static bool IsPositive(float value) => Single.IsFinite(value) && (value > 0);
+    private static bool IsPositive(double value) => Double.IsFinite(value) && (value > 0);
 
-    private static bool IsNonNegative(float value) => Single.IsFinite(value) && (value >= 0);
+    private static bool IsNonNegative(double value) => Double.IsFinite(value) && (value >= 0);
 }

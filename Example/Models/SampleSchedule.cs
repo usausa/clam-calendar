@@ -45,12 +45,12 @@ public static class SampleSchedule
         (26, "海外出張", 4, CalendarEventStyle.Filled, Blue, null)
     ];
 
-    private static readonly (int Day, string Glyph, CalendarStampPosition Position, float FontSize, float Opacity)[] StampTemplates =
+    private static readonly (int Day, string Glyph, CalendarStampPosition Position, double FontSize, double Opacity)[] StampTemplates =
     [
         (3, "🚩", CalendarStampPosition.TopRight, 22, 1),
         (8, "🐦", CalendarStampPosition.TopRight, 22, 1),
         (13, "✈️", CalendarStampPosition.Center, 26, 1),
-        (16, "🐶", CalendarStampPosition.Center, 32, 0.9f),
+        (16, "🐶", CalendarStampPosition.Center, 32, 0.9),
         (20, "👛", CalendarStampPosition.TopCenter, 22, 1),
         (22, "🐼", CalendarStampPosition.TopLeft, 22, 1),
         (26, "🎏", CalendarStampPosition.TopCenter, 22, 1),

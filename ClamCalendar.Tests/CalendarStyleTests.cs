@@ -44,7 +44,7 @@ public sealed class CalendarStyleTests
     {
         // Act & Assert
         Assert.Throws<ArgumentException>(static () => new CalendarRenderer(new CalendarStyle { HeaderFontSize = 0 }));
-        Assert.Throws<ArgumentException>(static () => new CalendarRenderer(new CalendarStyle { DateRowHeight = Single.NaN }));
+        Assert.Throws<ArgumentException>(static () => new CalendarRenderer(new CalendarStyle { DateRowHeight = Double.NaN }));
         Assert.Throws<ArgumentException>(static () => new CalendarRenderer(new CalendarStyle { EventPadding = -1 }));
     }
 
@@ -68,7 +68,7 @@ public sealed class CalendarStyleTests
         using var view = new ClamCalendarView();
 
         // Act
-        view.CalendarStyle.DateRowHeight = Single.NaN;
+        view.CalendarStyle.DateRowHeight = Double.NaN;
 
         // Assert
         Assert.Throws<ArgumentException>(view.Invalidate);
