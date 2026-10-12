@@ -16,9 +16,29 @@ public sealed class CalendarRendererTests
         var month = new CalendarMonthBuilder().Build(2026, 9, Today);
 
         // Act & Assert
-        Assert.Equal("September 2026", CalendarRenderer.FormatTitle(month, CultureInfo.GetCultureInfo("en-US"), null));
-        Assert.Equal("2026年9月", CalendarRenderer.FormatTitle(month, CultureInfo.GetCultureInfo("ja-JP"), null));
-        Assert.Equal("2026/09", CalendarRenderer.FormatTitle(month, CultureInfo.GetCultureInfo("ja-JP"), "yyyy/MM"));
+        Assert.Equal("September 2026", CalendarRenderer.FormatTitle(month, CultureInfo.GetCultureInfo("en-US"), CalendarTextFormat.Default));
+        Assert.Equal("2026年9月", CalendarRenderer.FormatTitle(month, CultureInfo.GetCultureInfo("ja-JP"), CalendarTextFormat.Default));
+        Assert.Equal("2026/09", CalendarRenderer.FormatTitle(month, CultureInfo.GetCultureInfo("ja-JP"), CalendarTextFormat.Parse("yyyy/MM")));
+        Assert.Equal("2026年9月の予定", CalendarRenderer.FormatTitle(month, CultureInfo.GetCultureInfo("ja-JP"), CalendarTextFormat.Parse("{0:yyyy年M月}の予定")));
+        Assert.Equal("Plan for September", CalendarRenderer.FormatTitle(month, CultureInfo.GetCultureInfo("en-US"), CalendarTextFormat.Parse("Plan for {0:MMMM}")));
+    }
+
+    [Fact]
+    public void HeaderFormatIsParsedOnceUntilItChanges()
+    {
+        // Arrange
+        using var view = new ClamCalendarView { HeaderFormat = "yyyy/MM" };
+
+        // Act
+        var first = view.CreateRenderState().HeaderFormat;
+        var second = view.CreateRenderState().HeaderFormat;
+        view.HeaderFormat = "{0:yyyy/MM} plan";
+        var changed = view.CreateRenderState().HeaderFormat;
+
+        // Assert
+        Assert.Same(first, second);
+        Assert.NotSame(first, changed);
+        Assert.Equal("2026/09 plan", changed.Format(new DateTime(2026, 9, 1), CultureInfo.InvariantCulture));
     }
 
     [Fact]

@@ -24,19 +24,20 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
     public static readonly BindableProperty HeaderVisibleProperty = BindableProperty.Create(nameof(HeaderVisible), typeof(bool), typeof(ClamCalendarView), true, propertyChanged: OnLayoutInputChanged);
     public static readonly BindableProperty NavigationButtonsVisibleProperty = BindableProperty.Create(nameof(NavigationButtonsVisible), typeof(bool), typeof(ClamCalendarView), true, propertyChanged: OnLayoutInputChanged);
     public static readonly BindableProperty TodayButtonVisibleProperty = BindableProperty.Create(nameof(TodayButtonVisible), typeof(bool), typeof(ClamCalendarView), false, propertyChanged: OnLayoutInputChanged);
-    public static readonly BindableProperty HeaderFormatProperty = BindableProperty.Create(nameof(HeaderFormat), typeof(string), typeof(ClamCalendarView), propertyChanged: OnRenderInputChanged);
+    public static readonly BindableProperty HeaderFormatProperty = BindableProperty.Create(nameof(HeaderFormat), typeof(string), typeof(ClamCalendarView), propertyChanged: OnHeaderFormatChanged);
     public static readonly BindableProperty PrevButtonTextProperty = BindableProperty.Create(nameof(PrevButtonText), typeof(string), typeof(ClamCalendarView), "◀", propertyChanged: OnRenderInputChanged);
     public static readonly BindableProperty NextButtonTextProperty = BindableProperty.Create(nameof(NextButtonText), typeof(string), typeof(ClamCalendarView), "▶", propertyChanged: OnRenderInputChanged);
     public static readonly BindableProperty TodayButtonTextProperty = BindableProperty.Create(nameof(TodayButtonText), typeof(string), typeof(ClamCalendarView), "Today", propertyChanged: OnRenderInputChanged);
     public static readonly BindableProperty WeekdayHeaderVisibleProperty = BindableProperty.Create(nameof(WeekdayHeaderVisible), typeof(bool), typeof(ClamCalendarView), true, propertyChanged: OnLayoutInputChanged);
     public static readonly BindableProperty WeekdayNameFormatProperty = BindableProperty.Create(nameof(WeekdayNameFormat), typeof(CalendarWeekdayNameFormat), typeof(ClamCalendarView), CalendarWeekdayNameFormat.Initial, propertyChanged: OnRenderInputChanged);
     public static readonly BindableProperty MonthIndicatorVisibleProperty = BindableProperty.Create(nameof(MonthIndicatorVisible), typeof(bool), typeof(ClamCalendarView), false, propertyChanged: OnRenderInputChanged);
-    public static readonly BindableProperty CalendarStyleProperty = BindableProperty.Create(nameof(CalendarStyle), typeof(CalendarStyle), typeof(ClamCalendarView), defaultValueCreator: static _ => new CalendarStyle(), propertyChanged: OnStyleChanged);
+    public static readonly BindableProperty CalendarStyleProperty = BindableProperty.Create(nameof(CalendarStyle), typeof(CalendarStyle), typeof(ClamCalendarView), defaultValueCreator: static _ => new CalendarStyle(), validateValue: static (_, value) => CalendarStyle.ValidateValue(value), propertyChanged: OnStyleChanged);
 
     private readonly CalendarCollectionWatcher eventsWatcher;
     private readonly CalendarCollectionWatcher stampsWatcher;
     private readonly CalendarCollectionWatcher holidaysWatcher;
     private CalendarRenderer? renderer;
+    private CalendarTextFormat? headerFormat;
     private CalendarLayout? currentLayout;
     private ICalendarPlatformBridge? platform;
     private bool layoutDirty = true;
@@ -279,6 +280,7 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
     public void Invalidate()
     {
         ObjectDisposedException.ThrowIf(disposed, this);
+        CalendarStyle.Validate();
         renderer?.Dispose();
         renderer = null;
         InvalidateLayout();
@@ -315,7 +317,7 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
     internal CalendarRenderState CreateRenderState() => new()
     {
         Culture = Culture ?? CultureInfo.CurrentCulture,
-        HeaderFormat = HeaderFormat,
+        HeaderFormat = headerFormat ??= CalendarTextFormat.Parse(HeaderFormat),
         WeekdayNameFormat = WeekdayNameFormat,
         PrevButtonText = PrevButtonText,
         NextButtonText = NextButtonText,
@@ -412,6 +414,13 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
 
     private static void OnRenderInputChanged(BindableObject bindable, object oldValue, object newValue) =>
         ((ClamCalendarView)bindable).InvalidateSurface();
+
+    private static void OnHeaderFormatChanged(BindableObject bindable, object oldValue, object newValue)
+    {
+        var view = (ClamCalendarView)bindable;
+        view.headerFormat = null;
+        view.InvalidateSurface();
+    }
 
     private static void OnStyleChanged(BindableObject bindable, object oldValue, object newValue)
     {

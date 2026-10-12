@@ -93,6 +93,13 @@ public sealed record CalendarStyle
 
     public Color MonthIndicatorColor { get; set; } = Color.FromArgb("#10000000");
 
+    internal static bool ValidateValue(object? value)
+    {
+        ArgumentNullException.ThrowIfNull(value, nameof(CalendarStyle));
+        ((CalendarStyle)value).Validate();
+        return true;
+    }
+
     internal void Validate()
     {
         if (!IsPositive(HeaderFontSize) || !IsPositive(WeekdayHeaderFontSize) || !IsPositive(DateNumberFontSize) || !IsPositive(EventFontSize) || !IsPositive(DayLabelFontSize) || !IsPositive(MonthIndicatorFontSize))

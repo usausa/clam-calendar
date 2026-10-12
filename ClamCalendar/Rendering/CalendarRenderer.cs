@@ -34,11 +34,13 @@ internal sealed class CalendarRenderer : IDisposable
         fonts.Dispose();
     }
 
-    public static string FormatTitle(CalendarMonth month, CultureInfo culture, string? format)
+    public static string FormatTitle(CalendarMonth month, CultureInfo culture, CalendarTextFormat format)
     {
         ArgumentNullException.ThrowIfNull(month);
         ArgumentNullException.ThrowIfNull(culture);
-        return new DateTime(month.Year, month.Month, 1).ToString(String.IsNullOrEmpty(format) ? culture.DateTimeFormat.YearMonthPattern : format, culture);
+        ArgumentNullException.ThrowIfNull(format);
+        var date = new DateTime(month.Year, month.Month, 1);
+        return format.IsDefault ? date.ToString(culture.DateTimeFormat.YearMonthPattern, culture) : format.Format(date, culture);
     }
 
     public static string FormatWeekdayName(DayOfWeek dayOfWeek, CultureInfo culture, CalendarWeekdayNameFormat format)

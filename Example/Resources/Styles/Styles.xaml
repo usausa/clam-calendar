@@ -331,10 +331,7 @@
     <!-- Calendar style declared as a resource; the view refers to it with CalendarStyle="{StaticResource StampCalendarStyle}" -->
     <clam:CalendarStyle x:Key="StampCalendarStyle"
                         FontFamily="sans-serif"
-                        DateNumberFontSize="15"
-                        MonthIndicatorFontSize="140"
-                        TodayBackground="#1E88E5"
-                        SelectedDayBackground="#F57C00"
-                        MonthIndicatorColor="#12000000" />
+                        DateNumberFontSize="15" MonthIndicatorColor="#12000000" MonthIndicatorFontSize="140" SelectedDayBackground="#F57C00"
+                        TodayBackground="#1E88E5" />
 
 </ResourceDictionary>

@@ -26,7 +26,7 @@
 | `HeaderVisible` | `bool` | `true` | ✓ | Row with the title and the navigation buttons; set `false` to use a header of the page |
 | `NavigationButtonsVisible` | `bool` | `true` | ✓ | Previous and next buttons |
 | `TodayButtonVisible` | `bool` | `false` | ✓ | Today button next to the next button |
-| `HeaderFormat` | `string?` | `null` | ✓ | Title format; `null` uses `YearMonthPattern` of the culture |
+| `HeaderFormat` | `string?` | `null` | ✓ | Format of the first day of the month for the title: composite when it contains `{` (`{0:yyyy/MM} plan`), otherwise a format string (`yyyy/MM`); `null` uses `YearMonthPattern` of the culture |
 | `PrevButtonText`, `NextButtonText`, `TodayButtonText` | `string` | `◀`, `▶`, `Today` | ✓ | Button texts |
 | `WeekdayHeaderVisible` | `bool` | `true` | ✓ | Weekday row |
 | `WeekdayNameFormat` | `CalendarWeekdayNameFormat` | `Initial` | ✓ | `Initial` (M / 月), `Abbreviated` (Mon) or `Full` (Monday) |
@@ -78,6 +78,7 @@ The first `DisplayDateChanged` is raised while the page is being attached, which
 
 A style can be a XAML resource.  
 Treat it as immutable once assigned and replace it with a `with` expression to change it, or call `Invalidate()` after changing it in place.  
+Invalid sizes throw `ArgumentException` when the style is assigned or `Invalidate()` is called, and `null` throws `ArgumentNullException`.  
 Sizes are in DIP.  
 
 | Name | Type | Default | Description |

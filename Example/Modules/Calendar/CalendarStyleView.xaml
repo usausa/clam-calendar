@@ -2,9 +2,9 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:s="http://smart/maui"
-             xmlns:clam="clr-namespace:ClamCalendar;assembly=ClamCalendar"
              xmlns:shell="clr-namespace:Example.Shell"
              xmlns:module="clr-namespace:Example.Modules.Calendar"
+             xmlns:clam="clr-namespace:ClamCalendar;assembly=ClamCalendar"
              x:Class="Example.Modules.Calendar.CalendarStyleView"
              x:DataType="{x:Type module:CalendarStyleViewModel}"
              s:BindingContextResolver.Type="{x:Type module:CalendarStyleViewModel}"
@@ -33,8 +33,7 @@
                     Text="&lt;" />
             <Label Grid.Column="1"
                    Style="{StaticResource TitleLabel}"
-                   HorizontalTextAlignment="Center"
-                   VerticalTextAlignment="Center"
+                   HorizontalTextAlignment="Center" VerticalTextAlignment="Center"
                    Text="{Binding DisplayDate, StringFormat='{0:yyyy / MM}'}" />
             <Button Grid.Column="2"
                     Style="{StaticResource SubMenuButton}"

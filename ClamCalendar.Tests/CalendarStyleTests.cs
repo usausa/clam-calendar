@@ -49,6 +49,32 @@ public sealed class CalendarStyleTests
     }
 
     [Fact]
+    public void InvalidStylesAreRejectedWhenAssigned()
+    {
+        // Arrange
+        using var view = new ClamCalendarView();
+        var style = view.CalendarStyle;
+
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => view.CalendarStyle = new CalendarStyle { HeaderFontSize = 0 });
+        Assert.Throws<ArgumentNullException>(() => view.CalendarStyle = null!);
+        Assert.Same(style, view.CalendarStyle);
+    }
+
+    [Fact]
+    public void InvalidateRejectsAStyleChangedToInvalidValues()
+    {
+        // Arrange
+        using var view = new ClamCalendarView();
+
+        // Act
+        view.CalendarStyle.DateRowHeight = Single.NaN;
+
+        // Assert
+        Assert.Throws<ArgumentException>(view.Invalidate);
+    }
+
+    [Fact]
     public void InvalidateRedrawsUntilTheViewIsDisposed()
     {
         // Arrange

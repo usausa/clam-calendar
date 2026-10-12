@@ -7,7 +7,7 @@ internal sealed class CalendarRenderState
 {
     public CultureInfo Culture { get; init; } = CultureInfo.CurrentCulture;
 
-    public string? HeaderFormat { get; init; }
+    public CalendarTextFormat HeaderFormat { get; init; } = CalendarTextFormat.Default;
 
     public CalendarWeekdayNameFormat WeekdayNameFormat { get; init; }
 
