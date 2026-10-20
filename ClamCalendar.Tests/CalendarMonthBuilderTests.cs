@@ -119,6 +119,27 @@ public sealed class CalendarMonthBuilderTests
     }
 
     [Fact]
+    public void AppearancesAreAttachedToTheDaysThatAreDrawn()
+    {
+        // Arrange
+        var busy = new CalendarDayAppearance { Background = Colors.Red, DateNumberColor = Colors.White };
+        var appearances = new Dictionary<DateOnly, CalendarDayAppearance> { [new DateOnly(2026, 8, 31)] = busy, [new DateOnly(2026, 9, 1)] = busy };
+        var visible = new CalendarMonthBuilder();
+        var hidden = new CalendarMonthBuilder { OutsideMonthDaysVisible = false };
+
+        // Act
+        var visibleMonth = visible.Build(2026, 9, Today, appearances: appearances);
+        var hiddenMonth = hidden.Build(2026, 9, Today, appearances: appearances);
+
+        // Assert
+        Assert.Same(busy, visibleMonth.Weeks[0].Days[0].Appearance);
+        Assert.Same(busy, visibleMonth.Weeks[0].Days[1].Appearance);
+        Assert.Null(visibleMonth.FindDay(new DateOnly(2026, 9, 2))!.Appearance);
+        Assert.Null(hiddenMonth.Weeks[0].Days[0].Appearance);
+        Assert.Same(busy, hiddenMonth.Weeks[0].Days[1].Appearance);
+    }
+
+    [Fact]
     public void HolidaysAndWeekendsSetTheKind()
     {
         // Arrange

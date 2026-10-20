@@ -4,95 +4,193 @@
              xmlns:s="http://smart/maui"
              xmlns:shell="clr-namespace:Example.Shell"
              xmlns:module="clr-namespace:Example.Modules.Calendar"
-             xmlns:clam="clr-namespace:ClamCalendar;assembly=ClamCalendar"
+             xmlns:clam="clr-namespace:ClamCalendar;assembly=ClamCalendar" xmlns:cmc="clr-namespace:MauiComponents.Controls;assembly=MauiComponents.Controls"
              x:Class="Example.Modules.Calendar.CalendarBasicView"
              x:DataType="{x:Type module:CalendarBasicViewModel}"
              s:BindingContextResolver.Type="{x:Type module:CalendarBasicViewModel}"
              shell:ShellProperty.Title="Basic"
              shell:ShellProperty.Function1Text="Back"
-             shell:ShellProperty.Function2Text="Start"
-             shell:ShellProperty.Function3Text="Culture"
+             shell:ShellProperty.Function2Text="Setting"
              shell:ShellProperty.Function4Text="Clear"
              shell:ShellProperty.Function1Enabled="True"
              shell:ShellProperty.Function2Enabled="True"
-             shell:ShellProperty.Function3Enabled="True"
              shell:ShellProperty.Function4Enabled="True">
 
-    <Grid Style="{StaticResource FillGrid}"
-          RowDefinitions="*,Auto,Auto,Auto">
-        <clam:ClamCalendarView Grid.Row="0"
-                               Culture="{Binding Culture}"
-                               DayLongPressedCommand="{Binding DayLongPressedCommand}"
-                               DayTappedCommand="{Binding DayTappedCommand}"
-                               DisplayDate="{Binding DisplayDate, Mode=TwoWay}"
-                               DisplayDateChangedCommand="{Binding DisplayDateChangedCommand}"
-                               EventTappedCommand="{Binding EventTappedCommand}"
-                               Events="{Binding Events}"
-                               FirstDayOfWeek="{Binding FirstDayOfWeek}"
-                               FixedWeekRows="{Binding FixedWeekRows}"
-                               Holidays="{Binding Holidays}"
-                               MaxDate="{Binding MaxDate}"
-                               MaxVisibleSlots="{Binding MaxVisibleSlots}"
-                               MinDate="{Binding MinDate}"
-                               OutsideMonthDaysVisible="{Binding OutsideMonthDaysVisible}"
-                               OverflowTappedCommand="{Binding OverflowTappedCommand}"
-                               SelectedDate="{Binding SelectedDate, Mode=TwoWay}"
-                               SelectedDates="{Binding SelectedDates}"
-                               SelectedEndDate="{Binding SelectedEndDate, Mode=TwoWay}"
-                               SelectedStartDate="{Binding SelectedStartDate, Mode=TwoWay}"
-                               SelectionMode="{Binding SelectionMode}"
-                               Stamps="{Binding Stamps}"
-                               TodayButtonVisible="{Binding TodayButtonVisible}" />
+    <Grid>
+        <Grid Style="{StaticResource FillGrid}"
+              RowDefinitions="*,Auto">
+            <clam:ClamCalendarView Grid.Row="0"
+                                   Culture="{Binding Culture}"
+                                   DayAppearances="{Binding DayAppearances}"
+                                   DayLongPressedCommand="{Binding DayLongPressedCommand}"
+                                   DayTappedCommand="{Binding DayTappedCommand}"
+                                   DisplayDate="{Binding DisplayDate, Mode=TwoWay}"
+                                   DisplayDateChangedCommand="{Binding DisplayDateChangedCommand}"
+                                   EventTappedCommand="{Binding EventTappedCommand}"
+                                   Events="{Binding Events}"
+                                   FirstDayOfWeek="{Binding FirstDayOfWeek}"
+                                   FixedWeekRows="{Binding FixedWeekRows}"
+                                   Holidays="{Binding Holidays}"
+                                   MaxDate="{Binding MaxDate}"
+                                   MaxVisibleSlots="{Binding MaxVisibleSlots}"
+                                   MinDate="{Binding MinDate}"
+                                   OutsideMonthDaysVisible="{Binding OutsideMonthDaysVisible}"
+                                   OverflowTappedCommand="{Binding OverflowTappedCommand}"
+                                   SelectedDate="{Binding SelectedDate, Mode=TwoWay}"
+                                   SelectedDates="{Binding SelectedDates}"
+                                   SelectedEndDate="{Binding SelectedEndDate, Mode=TwoWay}"
+                                   SelectedStartDate="{Binding SelectedStartDate, Mode=TwoWay}"
+                                   SelectionMode="{Binding SelectionMode}"
+                                   Stamps="{Binding Stamps}"
+                                   TodayButtonVisible="{Binding TodayButtonVisible}" />
 
-        <Label Grid.Row="1"
-               Style="{StaticResource StatusLabel}"
-               Text="{Binding Status}" />
-
-        <Grid Grid.Row="2"
-              Style="{StaticResource SubMenuGrid}"
-              ColumnDefinitions="*,*,*,*">
-            <Button Grid.Column="0"
-                    Style="{StaticResource SubMenuButton}"
-                    Command="{Binding SelectModeCommand}"
-                    CommandParameter="{x:Static clam:CalendarSelectionMode.None}"
-                    Text="None" />
-            <Button Grid.Column="1"
-                    Style="{StaticResource SubMenuButton}"
-                    Command="{Binding SelectModeCommand}"
-                    CommandParameter="{x:Static clam:CalendarSelectionMode.SingleDate}"
-                    Text="Single" />
-            <Button Grid.Column="2"
-                    Style="{StaticResource SubMenuButton}"
-                    Command="{Binding SelectModeCommand}"
-                    CommandParameter="{x:Static clam:CalendarSelectionMode.MultipleDates}"
-                    Text="Multi" />
-            <Button Grid.Column="3"
-                    Style="{StaticResource SubMenuButton}"
-                    Command="{Binding SelectModeCommand}"
-                    CommandParameter="{x:Static clam:CalendarSelectionMode.DateRange}"
-                    Text="Range" />
+            <Label Grid.Row="1"
+                   Style="{StaticResource StatusLabel}"
+                   Text="{Binding Status}" />
         </Grid>
 
-        <Grid Grid.Row="3"
-              Style="{StaticResource SubMenuGrid}"
-              ColumnDefinitions="*,*,*,*">
-            <Button Grid.Column="0"
-                    Style="{StaticResource ToggleButton}"
-                    Command="{Binding ToggleFixedCommand}"
-                    Text="{Binding FixedWeekRows, StringFormat='Fixed {0}'}" />
-            <Button Grid.Column="1"
-                    Style="{StaticResource ToggleButton}"
-                    Command="{Binding ToggleOutsideCommand}"
-                    Text="{Binding OutsideMonthDaysVisible, StringFormat='Outside {0}'}" />
-            <Button Grid.Column="2"
-                    Style="{StaticResource ToggleButton}"
-                    Command="{Binding ToggleSlotsCommand}"
-                    Text="{Binding MaxVisibleSlots, StringFormat='Slots {0}'}" />
-            <Button Grid.Column="3"
-                    Style="{StaticResource ToggleButton}"
-                    Command="{Binding ToggleLimitCommand}"
-                    Text="{Binding LimitText}" />
-        </Grid>
+        <cmc:BottomSheetView Style="{StaticResource SettingSheet}"
+                             IsOpen="{Binding IsSettingOpen}">
+            <cmc:BottomSheetView.SheetTemplate>
+                <DataTemplate x:DataType="{x:Type module:CalendarBasicViewModel}">
+                    <VerticalStackLayout Style="{StaticResource SheetStack}">
+                        <Label Style="{StaticResource SheetTitle}"
+                               Text="Selection mode" />
+                        <Grid Style="{StaticResource SheetGrid}"
+                              ColumnDefinitions="*,*,*,*,*">
+                            <Button Grid.Column="0"
+                                    Style="{StaticResource SheetButton}"
+                                    Command="{Binding SelectModeCommand}"
+                                    CommandParameter="{x:Static clam:CalendarSelectionMode.None}"
+                                    Text="None">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button"
+                                                 Value="{x:Static clam:CalendarSelectionMode.None}"
+                                                 Binding="{Binding SelectionMode}">
+                                        <Setter Property="BackgroundColor" Value="{StaticResource BlueDefault}" />
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Button Grid.Column="1"
+                                    Style="{StaticResource SheetButton}"
+                                    Command="{Binding SelectModeCommand}"
+                                    CommandParameter="{x:Static clam:CalendarSelectionMode.SingleDate}"
+                                    Text="Single">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button"
+                                                 Value="{x:Static clam:CalendarSelectionMode.SingleDate}"
+                                                 Binding="{Binding SelectionMode}">
+                                        <Setter Property="BackgroundColor" Value="{StaticResource BlueDefault}" />
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Button Grid.Column="2"
+                                    Style="{StaticResource SheetButton}"
+                                    Command="{Binding SelectModeCommand}"
+                                    CommandParameter="{x:Static clam:CalendarSelectionMode.MultipleDates}"
+                                    Text="Multi">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button"
+                                                 Value="{x:Static clam:CalendarSelectionMode.MultipleDates}"
+                                                 Binding="{Binding SelectionMode}">
+                                        <Setter Property="BackgroundColor" Value="{StaticResource BlueDefault}" />
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Button Grid.Column="3"
+                                    Style="{StaticResource SheetButton}"
+                                    Command="{Binding SelectModeCommand}"
+                                    CommandParameter="{x:Static clam:CalendarSelectionMode.DateRange}"
+                                    Text="Range">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button"
+                                                 Value="{x:Static clam:CalendarSelectionMode.DateRange}"
+                                                 Binding="{Binding SelectionMode}">
+                                        <Setter Property="BackgroundColor" Value="{StaticResource BlueDefault}" />
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Button Grid.Column="4"
+                                    Style="{StaticResource SheetButton}"
+                                    Command="{Binding SelectModeCommand}"
+                                    CommandParameter="{x:Static clam:CalendarSelectionMode.Week}"
+                                    Text="Week">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button"
+                                                 Value="{x:Static clam:CalendarSelectionMode.Week}"
+                                                 Binding="{Binding SelectionMode}">
+                                        <Setter Property="BackgroundColor" Value="{StaticResource BlueDefault}" />
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                        </Grid>
+
+                        <Label Style="{StaticResource SheetTitle}"
+                               Text="Week start and culture" />
+                        <Grid Style="{StaticResource SheetGrid}"
+                              ColumnDefinitions="*,*">
+                            <Button Grid.Column="0"
+                                    Style="{StaticResource SheetButton}"
+                                    Command="{Binding ToggleStartCommand}"
+                                    Text="{Binding StartText}" />
+                            <Button Grid.Column="1"
+                                    Style="{StaticResource SheetButton}"
+                                    Command="{Binding ToggleCultureCommand}"
+                                    Text="{Binding CultureText}" />
+                        </Grid>
+
+                        <Label Style="{StaticResource SheetTitle}"
+                               Text="Layout" />
+                        <Grid Style="{StaticResource SheetGrid}"
+                              ColumnDefinitions="*,*,*">
+                            <Grid Grid.Column="0"
+                                  ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0"
+                                       Style="{StaticResource SheetSwitchLabel}"
+                                       Text="Fixed" />
+                                <Switch Grid.Column="1"
+                                        Style="{StaticResource SheetSwitch}"
+                                        IsToggled="{Binding FixedWeekRows}" />
+                            </Grid>
+                            <Grid Grid.Column="1"
+                                  ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0"
+                                       Style="{StaticResource SheetSwitchLabel}"
+                                       Text="Outside" />
+                                <Switch Grid.Column="1"
+                                        Style="{StaticResource SheetSwitch}"
+                                        IsToggled="{Binding OutsideMonthDaysVisible}" />
+                            </Grid>
+                            <Grid Grid.Column="2"
+                                  ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0"
+                                       Style="{StaticResource SheetSwitchLabel}"
+                                       Text="Today" />
+                                <Switch Grid.Column="1"
+                                        Style="{StaticResource SheetSwitch}"
+                                        IsToggled="{Binding TodayButtonVisible}" />
+                            </Grid>
+                        </Grid>
+                        <Grid Style="{StaticResource SheetGrid}"
+                              ColumnDefinitions="*,*">
+                            <Button Grid.Column="0"
+                                    Style="{StaticResource SheetButton}"
+                                    Command="{Binding ToggleSlotsCommand}"
+                                    Text="{Binding MaxVisibleSlots, StringFormat='Slots {0}'}" />
+                            <Button Grid.Column="1"
+                                    Style="{StaticResource SheetButton}"
+                                    Command="{Binding ToggleLimitCommand}"
+                                    Text="{Binding LimitText}" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </cmc:BottomSheetView.SheetTemplate>
+        </cmc:BottomSheetView>
     </Grid>
 
 </ContentView>

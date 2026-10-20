@@ -2,14 +2,18 @@ namespace Example.Modules.Calendar;
 
 public sealed partial class CalendarStyleViewModel : AppViewModelBase
 {
-    private static readonly (string Name, CalendarStyle Style)[] Themes =
+    private static readonly (string Name, CalendarStyle Style, bool WeekNumber)[] Themes =
     [
-        ("Default", new CalendarStyle()),
-        ("Dark", CreateDarkStyle()),
-        ("Contrast", CreateContrastStyle())
+        ("Default", new CalendarStyle(), false),
+        ("Dark", CreateDarkStyle(), false),
+        ("Accent", CreateAccentStyle(), true),
+        ("Minimal", CreateMinimalStyle(), false)
     ];
 
     private int themeIndex;
+
+    [ObservableProperty]
+    public partial bool IsSettingOpen { get; set; }
 
     [ObservableProperty]
     public partial DateOnly DisplayDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
@@ -30,19 +34,37 @@ public sealed partial class CalendarStyleViewModel : AppViewModelBase
     public partial CalendarWeekdayNameFormat WeekdayNameFormat { get; set; }
 
     [ObservableProperty]
+    public partial bool WeekNumberVisible { get; set; }
+
+    [ObservableProperty]
     public partial bool HeaderVisible { get; set; } = true;
 
     [ObservableProperty]
     public partial bool AppHeaderVisible { get; set; }
 
     [ObservableProperty]
-    public partial string Status { get; set; } = "Theme: Default";
+    public partial bool TodayButtonVisible { get; set; } = true;
+
+    [ObservableProperty]
+    public partial string ThemeName { get; set; } = Themes[0].Name;
+
+    [ObservableProperty]
+    public partial string HeaderText { get; set; } = "Built-in header";
+
+    [ObservableProperty]
+    public partial string Status { get; set; } = "Theme  Default";
 
     public IObserveCommand DisplayDateChangedCommand { get; }
 
     public IObserveCommand PrevCommand { get; }
 
     public IObserveCommand NextCommand { get; }
+
+    public IObserveCommand SelectThemeCommand { get; }
+
+    public IObserveCommand SelectNameFormatCommand { get; }
+
+    public IObserveCommand ToggleHeaderCommand { get; }
 
     //--------------------------------------------------------------------------------
     // Constructor
@@ -53,44 +75,62 @@ public sealed partial class CalendarStyleViewModel : AppViewModelBase
         DisplayDateChangedCommand = MakeDelegateCommand<CalendarDisplayDateChangedEventArgs>(CommandMode.Simple, Load);
         PrevCommand = MakeDelegateCommand(() => DisplayDate = DisplayDate.AddMonths(-1));
         NextCommand = MakeDelegateCommand(() => DisplayDate = DisplayDate.AddMonths(1));
+        SelectThemeCommand = MakeDelegateCommand<string>(SelectTheme);
+        SelectNameFormatCommand = MakeDelegateCommand<CalendarWeekdayNameFormat>(SelectNameFormat);
+        ToggleHeaderCommand = MakeDelegateCommand(ToggleHeader);
     }
 
     //--------------------------------------------------------------------------------
     // Navigation
     //--------------------------------------------------------------------------------
 
-    protected override Task OnNotifyBackAsync() => Navigator.ForwardAsync(ViewId.CalendarMenu);
+    protected override Task OnNotifyBackAsync()
+    {
+        if (IsSettingOpen)
+        {
+            IsSettingOpen = false;
+            return Task.CompletedTask;
+        }
+
+        return Navigator.ForwardAsync(ViewId.CalendarMenu);
+    }
 
     protected override Task OnNotifyFunction1() => OnNotifyBackAsync();
 
     protected override Task OnNotifyFunction2()
     {
-        themeIndex = (themeIndex + 1) % Themes.Length;
-        var (name, style) = Themes[themeIndex];
-        CalendarStyle = style;
-        Status = $"Theme: {name}";
+        IsSettingOpen = !IsSettingOpen;
         return Task.CompletedTask;
     }
 
-    protected override Task OnNotifyFunction3()
+    //--------------------------------------------------------------------------------
+    // Setting
+    //--------------------------------------------------------------------------------
+
+    private void SelectTheme(string name)
     {
-        WeekdayNameFormat = WeekdayNameFormat switch
-        {
-            CalendarWeekdayNameFormat.Initial => CalendarWeekdayNameFormat.Abbreviated,
-            CalendarWeekdayNameFormat.Abbreviated => CalendarWeekdayNameFormat.Full,
-            _ => CalendarWeekdayNameFormat.Initial
-        };
-        Status = $"Weekday names: {WeekdayNameFormat}";
-        return Task.CompletedTask;
+        themeIndex = Array.FindIndex(Themes, x => x.Name == name);
+        var (_, style, weekNumber) = Themes[themeIndex];
+        CalendarStyle = style;
+        WeekNumberVisible = weekNumber;
+        ThemeName = name;
+        Status = $"Theme  {name}";
+        IsSettingOpen = false;
+    }
+
+    private void SelectNameFormat(CalendarWeekdayNameFormat format)
+    {
+        WeekdayNameFormat = format;
+        Status = $"Weekday  {format}";
     }
 
     // Swaps the built-in header for the one of the page
-    protected override Task OnNotifyFunction4()
+    private void ToggleHeader()
     {
         HeaderVisible = !HeaderVisible;
         AppHeaderVisible = !HeaderVisible;
-        Status = HeaderVisible ? "Built-in header" : "Application header";
-        return Task.CompletedTask;
+        HeaderText = HeaderVisible ? "Built-in header" : "Page header";
+        Status = HeaderText;
     }
 
     //--------------------------------------------------------------------------------
@@ -123,6 +163,7 @@ public sealed partial class CalendarStyleViewModel : AppViewModelBase
         DisabledDayTextColor = Color.FromArgb("#424242"),
         DayLabelTextColor = Color.FromArgb("#9E9E9E"),
         OverflowTextColor = Color.FromArgb("#9E9E9E"),
+        StampColor = Color.FromArgb("#E0E0E0"),
         HeaderBackground = Color.FromArgb("#1F1F1F"),
         HeaderTextColor = Colors.White,
         NavigationButtonColor = Color.FromArgb("#E0E0E0"),
@@ -133,32 +174,49 @@ public sealed partial class CalendarStyleViewModel : AppViewModelBase
         MonthIndicatorColor = Color.FromArgb("#10FFFFFF")
     };
 
-    private static CalendarStyle CreateContrastStyle() => new()
+    private static CalendarStyle CreateMinimalStyle() => new()
     {
-        HeaderFontSize = 22,
-        DateNumberFontSize = 16,
-        EventFontSize = 12,
-        GridLineColor = Colors.Black,
-        WeekdayTextColor = Colors.Black,
-        SaturdayTextColor = Color.FromArgb("#0000FF"),
-        SundayTextColor = Color.FromArgb("#C00000"),
-        HolidayTextColor = Color.FromArgb("#C00000"),
-        OutsideMonthTextColor = Color.FromArgb("#808080"),
-        OutsideMonthBackground = Color.FromArgb("#E0E0E0"),
-        WeekendBackground = Color.FromArgb("#FFF8C0"),
-        HolidayBackground = Color.FromArgb("#FFD6D6"),
-        TodayBackground = Colors.Black,
-        TodayTextColor = Colors.Yellow,
-        SelectedDayBackground = Color.FromArgb("#0000A0"),
-        SelectedDayTextColor = Colors.White,
-        RangeBackground = Color.FromArgb("#C0C0FF"),
-        DisabledDayTextColor = Color.FromArgb("#A0A0A0"),
-        HeaderBackground = Colors.Black,
-        HeaderTextColor = Colors.White,
-        NavigationButtonColor = Colors.White,
-        WeekdayHeaderBackground = Colors.Black,
-        WeekdayHeaderTextColor = Colors.White,
-        SaturdayHeaderTextColor = Color.FromArgb("#80B0FF"),
-        SundayHeaderTextColor = Color.FromArgb("#FF8080")
+        GridLineMode = CalendarGridLineMode.None,
+        EventDisplayMode = CalendarEventDisplayMode.Dots,
+        DateNumberShape = CalendarDateNumberShape.Circle,
+        TodayMarkStyle = CalendarMarkStyle.Outline,
+        TodayMarkOnSelected = true,
+        TodayTextColor = Color.FromArgb("#1F1F1F"),
+        DateNumberBold = false,
+        WeekendBackground = Colors.Transparent,
+        HolidayBackground = Colors.Transparent
+    };
+
+    private static CalendarStyle CreateAccentStyle() => new()
+    {
+        GridLineMode = CalendarGridLineMode.Horizontal,
+        GridLineColor = Color.FromArgb("#E3E6F5"),
+        DateNumberShape = CalendarDateNumberShape.Circle,
+        TodayMarkStyle = CalendarMarkStyle.Fill,
+        SelectedMarkStyle = CalendarMarkStyle.Outline,
+        TodayMarkOnSelected = true,
+        EventCornerRadius = 8,
+        SaturdayTextColor = Color.FromArgb("#5C6BC0"),
+        SundayTextColor = Color.FromArgb("#3F51B5"),
+        HolidayTextColor = Color.FromArgb("#3F51B5"),
+        OutsideMonthTextColor = Color.FromArgb("#C5CAE9"),
+        OutsideMonthBackground = Colors.White,
+        WeekendBackground = Color.FromArgb("#F6F7FC"),
+        HolidayBackground = Color.FromArgb("#EDEFF9"),
+        TodayBackground = Color.FromArgb("#3F51B5"),
+        TodayTextColor = Colors.White,
+        SelectedDayBackground = Color.FromArgb("#3F51B5"),
+        SelectedDayTextColor = Color.FromArgb("#3F51B5"),
+        RangeBackground = Color.FromArgb("#E8EAF6"),
+        DayLabelTextColor = Color.FromArgb("#7986CB"),
+        OverflowTextColor = Color.FromArgb("#7986CB"),
+        StampColor = Color.FromArgb("#3F51B5"),
+        HeaderTextColor = Color.FromArgb("#3F51B5"),
+        NavigationButtonColor = Color.FromArgb("#3F51B5"),
+        WeekdayHeaderBackground = Color.FromArgb("#EEF0FA"),
+        WeekdayHeaderTextColor = Color.FromArgb("#5C6BC0"),
+        SaturdayHeaderTextColor = Color.FromArgb("#5C6BC0"),
+        SundayHeaderTextColor = Color.FromArgb("#3F51B5"),
+        MonthIndicatorColor = Color.FromArgb("#0D3F51B5")
     };
 }

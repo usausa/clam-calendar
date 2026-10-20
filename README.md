@@ -127,12 +127,13 @@ public sealed class CalendarViewModel : ObservableObject
 | Task | Binding |
 |---|---|
 | Month | `DisplayDate` (TwoWay), `Navigate` / `GoToToday`, `MinDate` / `MaxDate`, `DisplayDateChangedCommand` |
-| Data | `Events`, `Stamps`, `Holidays`, `DayLabels`; `INotifyCollectionChanged` sources redraw on change |
-| Layout | `FirstDayOfWeek`, `FixedWeekRows`, `OutsideMonthDaysVisible`, `MaxVisibleSlots`, `Culture`, `WeekdayNameFormat` |
+| Data | `Events`, `Stamps`, `Holidays`, `DayLabels`, `DayAppearances`; `INotifyCollectionChanged` sources redraw on change |
+| Layout | `FirstDayOfWeek`, `FixedWeekRows`, `OutsideMonthDaysVisible`, `MaxVisibleSlots`, `WeekNumberVisible`, `Culture`, `WeekdayNameFormat` |
 | Header | `HeaderVisible`, `NavigationButtonsVisible`, `TodayButtonVisible`, `HeaderFormat` and the button texts, or `HeaderVisible="False"` with a header of the page |
 | Selection | `SelectionMode`, `SelectedDate` / `SelectedStartDate` / `SelectedEndDate` (TwoWay), `SelectedDates`, `AllowDeselect`, `MaxSelectableDays`, `DisabledDates` |
 | Input | `DayTappedCommand`, `DayLongPressedCommand`, `EventTappedCommand`, `OverflowTappedCommand` with the same arguments as the events |
 | Colors | `CalendarStyle` as a resource or a view model property |
+| Overlay | `ClamCalendarOverlay` to place templated views of the view model over single days, or `DayAreaBounds`, `GetDayBounds` and `GetDateNumberBounds` for an overlay written by hand |
 
 Holiday calculation, event storage and navigation belong to the application.  
 
@@ -140,12 +141,12 @@ Holiday calculation, event storage and navigation belong to the application.
 
 | Category | Detail |
 |---|---|
-| **Month** | Monday or any other first day of the week, six fixed rows or the rows the month needs, neighboring days shown or blank, month indicator watermark |
-| **Events** | Single and multi day events placed across weeks, filled bars or plain text, leading glyph and start time, row limit with `+N` overflow |
-| **Days** | Weekend and holiday colors, today mark, small labels such as holiday names, emoji stamps in seven positions |
-| **Selection** | None / single date / multiple dates / date range, deselect and count limits, disabled dates and date limits |
+| **Month** | Monday or any other first day of the week, six fixed rows or the rows the month needs, neighboring days shown or blank, month indicator watermark, ISO 8601 week numbers |
+| **Events** | Single and multi day events placed across weeks, filled bars or plain text, leading glyph and start time, row limit with `+N` overflow, or one colored dot per event |
+| **Days** | Weekend and holiday colors, today mark, small labels such as holiday names, emoji and colored stamps in seven positions, per day colors and frames |
+| **Selection** | None / single date / multiple dates / date range / whole week, deselect and count limits, disabled dates and date limits |
 | **Navigation** | Header buttons, today button, horizontal swipe with a slide animation, limits by `MinDate` / `MaxDate`, visible range notification |
-| **Styling** | Fonts, sizes and colors in `CalendarStyle`, usable as a XAML resource |
+| **Styling** | Fonts, sizes and colors in `CalendarStyle`, the shape of the today and selection marks and which grid lines are drawn, usable as a XAML resource |
 | **Fonts** | Per character fallback to the `FallbackFonts` typefaces of SkiaExtension and system fonts, emoji sequences included |
 | **Input** | Tap, long press, swipe, commands for MVVM, parent scroll handed over on vertical movement |
 

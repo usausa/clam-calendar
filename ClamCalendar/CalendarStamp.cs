@@ -12,6 +12,8 @@ public sealed class CalendarStamp
 
     public double FontSize { get; init; } = 28;
 
+    public Color? Color { get; init; }
+
     public double Opacity { get; init; } = 1;
 
     public object? Tag { get; init; }

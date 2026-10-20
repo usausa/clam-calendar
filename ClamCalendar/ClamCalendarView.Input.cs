@@ -183,11 +183,11 @@ public partial class ClamCalendarView
         {
             Raise(DayLongPressed, DayLongPressedCommand, new CalendarDayEventArgs(day), generation);
         }
-        else if ((hit.Kind == CalendarHitKind.Event) && (hit.Placement is { } placement))
+        else if ((hit.Kind == CalendarHitKind.Event) && (hit.Placement is { } placement) && ((EventTapped is not null) || (EventTappedCommand is not null)))
         {
             Raise(EventTapped, EventTappedCommand, new CalendarEventEventArgs(placement.Event, day), generation);
         }
-        else if (hit.Kind == CalendarHitKind.Overflow)
+        else if ((hit.Kind == CalendarHitKind.Overflow) && ((OverflowTapped is not null) || (OverflowTappedCommand is not null)))
         {
             Raise(OverflowTapped, OverflowTappedCommand, new CalendarOverflowEventArgs(day), generation);
         }

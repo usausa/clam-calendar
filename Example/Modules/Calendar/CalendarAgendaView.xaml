@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:s="http://smart/maui"
+             xmlns:shell="clr-namespace:Example.Shell"
+             xmlns:module="clr-namespace:Example.Modules.Calendar"
+             xmlns:clam="clr-namespace:ClamCalendar;assembly=ClamCalendar"
+             x:Class="Example.Modules.Calendar.CalendarAgendaView"
+             x:DataType="{x:Type module:CalendarAgendaViewModel}"
+             s:BindingContextResolver.Type="{x:Type module:CalendarAgendaViewModel}"
+             shell:ShellProperty.Title="Agenda"
+             shell:ShellProperty.Function1Text="Back"
+             shell:ShellProperty.Function4Text="Today"
+             shell:ShellProperty.Function1Enabled="True"
+             shell:ShellProperty.Function4Enabled="True">
+
+    <Grid Style="{StaticResource FillGrid}"
+          RowDefinitions="2*,Auto,*">
+        <!-- The library has no list of its own; the events of the tapped day feed the CollectionView below -->
+        <clam:ClamCalendarView Grid.Row="0"
+                               CalendarStyle="{StaticResource AgendaCalendarStyle}"
+                               DayAppearances="{Binding DayAppearances}"
+                               DayTappedCommand="{Binding DayTappedCommand}"
+                               DisplayDate="{Binding DisplayDate, Mode=TwoWay}"
+                               DisplayDateChangedCommand="{Binding DisplayDateChangedCommand}"
+                               Events="{Binding Events}"
+                               Holidays="{Binding Holidays}"
+                               MaxVisibleSlots="2"
+                               SelectedDate="{Binding SelectedDate, Mode=TwoWay}"
+                               SelectionMode="SingleDate" />
+
+        <Label Grid.Row="1"
+               Style="{StaticResource ValueLabel}"
+               Text="{Binding StateText}" />
+
+        <CollectionView Grid.Row="2"
+                        ItemsSource="{Binding DayEvents}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="{x:Type clam:CalendarEvent}">
+                    <Grid ColumnDefinitions="6,*"
+                          Padding="8,5"
+                          ColumnSpacing="8">
+                        <BoxView Grid.Column="0"
+                                 Color="{Binding BackgroundColor}" />
+                        <Label Grid.Column="1"
+                               Style="{StaticResource ValueLabel}"
+                               Text="{Binding Title}" />
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+            <CollectionView.EmptyView>
+                <Label Style="{StaticResource StatusLabel}"
+                       Text="No events on the selected day." />
+            </CollectionView.EmptyView>
+        </CollectionView>
+
+    </Grid>
+
+</ContentView>

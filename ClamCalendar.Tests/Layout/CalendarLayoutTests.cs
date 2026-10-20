@@ -48,7 +48,7 @@ public sealed class CalendarLayoutTests
         Assert.Equal(new CalendarRect(0, 0, 44, 48), withToday.PrevButtonBounds);
         Assert.Equal(new CalendarRect(306, 0, 44, 48), withToday.NextButtonBounds);
         Assert.Equal(new CalendarRect(242, 0, 64, 48), withToday.TodayButtonBounds);
-        Assert.Equal(new CalendarRect(44, 0, 198, 48), withToday.TitleBounds);
+        Assert.Equal(new CalendarRect(44, 0, 262, 48), withToday.TitleBounds);
         Assert.Equal(new CalendarRect(44, 0, 262, 48), withoutToday.TitleBounds);
         Assert.True(withoutToday.TodayButtonBounds.IsEmpty);
         Assert.Equal(new CalendarRect(0, 0, 350, 48), noButtons.TitleBounds);
@@ -180,6 +180,49 @@ public sealed class CalendarLayoutTests
         Assert.True(layout.GetCellBounds(0, 7).IsEmpty);
         Assert.Throws<ArgumentOutOfRangeException>(static () => new CalendarLayout(Build(), new CalendarStyle(), -1, 600));
         Assert.Throws<ArgumentOutOfRangeException>(static () => new CalendarLayout(Build(), new CalendarStyle(), 350, Double.NaN));
+    }
+
+    [Fact]
+    public void WeekNumberColumnShrinksTheDayColumns()
+    {
+        // Arrange
+        var style = new CalendarStyle();
+        var plain = new CalendarLayout(Build(), style, 350, 600);
+        var numbered = new CalendarLayout(Build(), style, 350, 600, weekNumberVisible: true);
+
+        // Act & Assert
+        Assert.Equal(0, plain.WeekNumberWidth, Tolerance);
+        Assert.Equal(50, plain.ColumnWidth, Tolerance);
+        Assert.True(plain.GetWeekNumberBounds(0).IsEmpty);
+        Assert.Equal(plain.BodyBounds, plain.DayAreaBounds);
+        Assert.Equal(24, numbered.WeekNumberWidth, Tolerance);
+        Assert.Equal((350 - 24) / 7d, numbered.ColumnWidth, Tolerance);
+        Assert.Equal(24, numbered.DayAreaBounds.X, Tolerance);
+        Assert.Equal(0, numbered.GetWeekNumberBounds(0).X, Tolerance);
+        Assert.Equal(24, numbered.GetWeekNumberBounds(0).Width, Tolerance);
+        Assert.Equal(24, numbered.GetCellBounds(0, 0).X, Tolerance);
+        Assert.Equal(24, numbered.GetWeekdayHeaderCellBounds(0).X, Tolerance);
+        Assert.Equal(24, numbered.GetSlotBounds(0, 0, 0, 1).X, Tolerance);
+        Assert.Equal(new CalendarHit(CalendarHitKind.Day, 0, 0), numbered.HitTest(5, numbered.BodyBounds.Y + 5));
+        Assert.Equal(new CalendarHit(CalendarHitKind.Day, 0, 6), numbered.HitTest(349.9, numbered.BodyBounds.Y + 5));
+    }
+
+    [Fact]
+    public void DotsModeReportsDayHitsInsteadOfEventsAndOverflow()
+    {
+        // Arrange
+        var day = new DateOnly(2026, 9, 10);
+        var events = new[] { Event("a", day), Event("b", day), Event("c", day) };
+        var bars = new CalendarLayout(Build(events, 1), new CalendarStyle(), 350, 600);
+        var dots = new CalendarLayout(Build(events, 1), new CalendarStyle { EventDisplayMode = CalendarEventDisplayMode.Dots }, 350, 600);
+        var slot = bars.GetSlotBounds(1, 0, 3, 1);
+        var overflow = bars.GetOverflowBounds(1, 3);
+
+        // Act & Assert
+        Assert.Equal(CalendarHitKind.Event, bars.HitTest(slot.X + 5, slot.CenterY).Kind);
+        Assert.Equal(CalendarHitKind.Overflow, bars.HitTest(overflow.X + 5, overflow.CenterY).Kind);
+        Assert.Equal(new CalendarHit(CalendarHitKind.Day, 1, 3), dots.HitTest(slot.X + 5, slot.CenterY));
+        Assert.Equal(new CalendarHit(CalendarHitKind.Day, 1, 3), dots.HitTest(overflow.X + 5, overflow.CenterY));
     }
 
     private static CalendarMonth Build(IEnumerable<CalendarEvent>? events = null, int maxVisibleSlots = 0) =>

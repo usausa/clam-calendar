@@ -5,5 +5,6 @@ public enum CalendarSelectionMode
     None,
     SingleDate,
     MultipleDates,
-    DateRange
+    DateRange,
+    Week
 }

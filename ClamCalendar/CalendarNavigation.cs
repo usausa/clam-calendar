@@ -1,8 +1,12 @@
 namespace ClamCalendar;
 
+using ClamCalendar.Layout;
+
 // Month arithmetic of ClamCalendarView kept free of bindable properties so it can be unit tested
 internal static class CalendarNavigation
 {
+    private const int DaysPerWeek = CalendarEventPlacer.DaysPerWeek;
+
     public static DateOnly FirstOfMonth(DateOnly date) => new(date.Year, date.Month, 1);
 
     public static int MonthIndex(DateOnly date) => (date.Year * 12) + date.Month;
@@ -38,4 +42,18 @@ internal static class CalendarNavigation
 
     public static bool IsMonthWithinLimits(DateOnly date, DateOnly? min, DateOnly? max) =>
         ClampMonth(date, min, max) == FirstOfMonth(date);
+
+    public static (int Week, int Column)? LocatePosition(CalendarDateRange range, DateOnly date)
+    {
+        if (!range.Contains(date))
+        {
+            return null;
+        }
+
+        var offset = date.DayNumber - range.Start.DayNumber;
+        return (offset / DaysPerWeek, offset % DaysPerWeek);
+    }
+
+    public static TimeSpan NextDateChangeDelay(DateTime now) =>
+        (TimeSpan.FromDays(1) - now.TimeOfDay) + TimeSpan.FromSeconds(1);
 }

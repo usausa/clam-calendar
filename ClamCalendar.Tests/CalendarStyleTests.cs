@@ -18,7 +18,22 @@ public sealed class CalendarStyleTests
         Assert.Equal(16, style.EventRowHeight);
         Assert.Equal(24, style.DateNumberSize);
         Assert.Equal(44, style.NavigationButtonWidth);
+        Assert.Equal(2, style.DateNumberMarkWidth);
+        Assert.Equal(0.5, style.GridLineWidth);
+        Assert.Equal(CalendarMarkStyle.Fill, style.TodayMarkStyle);
+        Assert.Equal(CalendarMarkStyle.Fill, style.SelectedMarkStyle);
+        Assert.False(style.TodayMarkOnSelected);
+        Assert.Equal(CalendarDateNumberShape.RoundedSquare, style.DateNumberShape);
+        Assert.True(style.DateNumberBold);
+        Assert.Equal(CalendarGridLineMode.All, style.GridLineMode);
+        Assert.Equal(CalendarEventDisplayMode.Bars, style.EventDisplayMode);
+        Assert.Equal(6, style.EventDotSize);
+        Assert.Equal(3, style.EventDotSpacing);
+        Assert.Equal(4, style.MaxVisibleDots);
+        Assert.Equal(24, style.WeekNumberWidth);
+        Assert.Equal(9, style.WeekNumberFontSize);
         Assert.Equal(Colors.White, style.Background);
+        Assert.Equal(Colors.Black, style.StampColor);
         Assert.Equal(Color.FromArgb("#E53935"), style.HolidayTextColor);
         Assert.Equal(Color.FromArgb("#FFF1F1"), style.HolidayBackground);
     }
@@ -46,6 +61,13 @@ public sealed class CalendarStyleTests
         Assert.Throws<ArgumentException>(static () => new CalendarRenderer(new CalendarStyle { HeaderFontSize = 0 }));
         Assert.Throws<ArgumentException>(static () => new CalendarRenderer(new CalendarStyle { DateRowHeight = Double.NaN }));
         Assert.Throws<ArgumentException>(static () => new CalendarRenderer(new CalendarStyle { EventPadding = -1 }));
+        Assert.Throws<ArgumentException>(static () => new CalendarRenderer(new CalendarStyle { DateNumberMarkWidth = 0 }));
+        Assert.Throws<ArgumentException>(static () => new CalendarRenderer(new CalendarStyle { GridLineWidth = -1 }));
+        Assert.Throws<ArgumentException>(static () => new CalendarRenderer(new CalendarStyle { EventDotSize = 0 }));
+        Assert.Throws<ArgumentException>(static () => new CalendarRenderer(new CalendarStyle { EventDotSpacing = -1 }));
+        Assert.Throws<ArgumentException>(static () => new CalendarRenderer(new CalendarStyle { MaxVisibleDots = -1 }));
+        Assert.Throws<ArgumentException>(static () => new CalendarRenderer(new CalendarStyle { WeekNumberWidth = 0 }));
+        Assert.Throws<ArgumentException>(static () => new CalendarRenderer(new CalendarStyle { WeekNumberFontSize = -1 }));
     }
 
     [Fact]

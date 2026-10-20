@@ -4,46 +4,80 @@
              xmlns:s="http://smart/maui"
              xmlns:shell="clr-namespace:Example.Shell"
              xmlns:module="clr-namespace:Example.Modules.Calendar"
-             xmlns:clam="clr-namespace:ClamCalendar;assembly=ClamCalendar"
+             xmlns:clam="clr-namespace:ClamCalendar;assembly=ClamCalendar" xmlns:cmc="clr-namespace:MauiComponents.Controls;assembly=MauiComponents.Controls"
              x:Class="Example.Modules.Calendar.CalendarStampsView"
              x:DataType="{x:Type module:CalendarStampsViewModel}"
              s:BindingContextResolver.Type="{x:Type module:CalendarStampsViewModel}"
              shell:ShellProperty.Title="Stamps"
              shell:ShellProperty.Function1Text="Back"
-             shell:ShellProperty.Function2Text="Stamps"
-             shell:ShellProperty.Function3Text="Labels"
+             shell:ShellProperty.Function2Text="Setting"
              shell:ShellProperty.Function4Text="Today"
              shell:ShellProperty.Function1Enabled="True"
              shell:ShellProperty.Function2Enabled="True"
-             shell:ShellProperty.Function3Enabled="True"
              shell:ShellProperty.Function4Enabled="True">
 
-    <Grid Style="{StaticResource FillGrid}"
-          RowDefinitions="*,Auto">
-        <!-- Inside a ScrollView: vertical drags scroll the page, horizontal swipes on the calendar change the month -->
-        <ScrollView Grid.Row="0">
-            <VerticalStackLayout>
-                <clam:ClamCalendarView HeightRequest="560"
-                                       CalendarStyle="{StaticResource StampCalendarStyle}"
-                                       DayLabels="{Binding DayLabels}"
-                                       DayLongPressedCommand="{Binding DayLongPressedCommand}"
-                                       DayTappedCommand="{Binding DayTappedCommand}"
-                                       DisplayDate="{Binding DisplayDate, Mode=TwoWay}"
-                                       DisplayDateChangedCommand="{Binding DisplayDateChangedCommand}"
-                                       HeaderFormat="yyyy年 M月"
-                                       Holidays="{Binding Holidays}"
-                                       MonthIndicatorVisible="True"
-                                       Stamps="{Binding Stamps}"
-                                       WeekdayNameFormat="Abbreviated" />
-                <Label Style="{StaticResource ValueLabel}"
-                       HeightRequest="400"
-                       Text="Parent ScrollView area. Drag vertically to scroll the page and swipe horizontally on the calendar to change the month." />
-            </VerticalStackLayout>
-        </ScrollView>
+    <Grid>
+        <Grid Style="{StaticResource FillGrid}"
+              RowDefinitions="*,Auto">
+            <!-- Inside a ScrollView: vertical drags scroll the page, horizontal swipes on the calendar change the month -->
+            <ScrollView Grid.Row="0">
+                <VerticalStackLayout>
+                    <clam:ClamCalendarView HeightRequest="560"
+                                           CalendarStyle="{StaticResource StampCalendarStyle}"
+                                           DayAppearances="{Binding DayAppearances}"
+                                           DayLabels="{Binding DayLabels}"
+                                           DayLongPressedCommand="{Binding DayLongPressedCommand}"
+                                           DayTappedCommand="{Binding DayTappedCommand}"
+                                           DisplayDate="{Binding DisplayDate, Mode=TwoWay}"
+                                           DisplayDateChangedCommand="{Binding DisplayDateChangedCommand}"
+                                           HeaderFormat="yyyy年 M月"
+                                           Holidays="{Binding Holidays}"
+                                           MonthIndicatorVisible="True"
+                                           Stamps="{Binding Stamps}"
+                                           WeekdayNameFormat="Abbreviated" />
+                    <Label Style="{StaticResource ValueLabel}"
+                           HeightRequest="400"
+                           Text="Parent ScrollView area. Drag vertically to scroll the page and swipe horizontally on the calendar to change the month." />
+                </VerticalStackLayout>
+            </ScrollView>
 
-        <Label Grid.Row="1"
-               Style="{StaticResource StatusLabel}"
-               Text="{Binding Status}" />
+            <Label Grid.Row="1"
+                   Style="{StaticResource StatusLabel}"
+                   Text="{Binding Status}" />
+        </Grid>
+
+        <cmc:BottomSheetView Style="{StaticResource SettingSheet}"
+                             IsOpen="{Binding IsSettingOpen}">
+            <cmc:BottomSheetView.SheetTemplate>
+                <DataTemplate x:DataType="{x:Type module:CalendarStampsViewModel}">
+                    <VerticalStackLayout Style="{StaticResource SheetStack}">
+                        <Label Style="{StaticResource SheetTitle}"
+                               Text="Sample data" />
+                        <Grid Style="{StaticResource SheetGrid}"
+                              ColumnDefinitions="*,*">
+                            <Grid Grid.Column="0"
+                                  ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0"
+                                       Style="{StaticResource SheetSwitchLabel}"
+                                       Text="Stamps" />
+                                <Switch Grid.Column="1"
+                                        Style="{StaticResource SheetSwitch}"
+                                        IsToggled="{Binding StampsVisible}" />
+                            </Grid>
+                            <Grid Grid.Column="1"
+                                  ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0"
+                                       Style="{StaticResource SheetSwitchLabel}"
+                                       Text="Labels" />
+                                <Switch Grid.Column="1"
+                                        Style="{StaticResource SheetSwitch}"
+                                        IsToggled="{Binding LabelsVisible}" />
+                            </Grid>
+                        </Grid>
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </cmc:BottomSheetView.SheetTemplate>
+        </cmc:BottomSheetView>
     </Grid>
 
 </ContentView>

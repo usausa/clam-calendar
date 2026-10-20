@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-                    xmlns:clam="clr-namespace:ClamCalendar;assembly=ClamCalendar">
+                    xmlns:clam="clr-namespace:ClamCalendar;assembly=ClamCalendar" xmlns:cmc="clr-namespace:MauiComponents.Controls;assembly=MauiComponents.Controls">
 
     <!-- ================================================================================ -->
     <!-- Value -->
@@ -238,6 +238,64 @@
     </Style>
 
     <!-- ================================================================================ -->
+    <!-- Setting sheet -->
+    <!-- ================================================================================ -->
+
+    <Style x:Key="SettingSheet"
+           TargetType="cmc:BottomSheetView">
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="HalfExpandedRatio" Value="0.45" />
+    </Style>
+
+    <Style x:Key="SheetStack"
+           TargetType="VerticalStackLayout">
+        <Setter Property="Padding" Value="12,0,12,12" />
+        <Setter Property="Spacing" Value="4" />
+    </Style>
+
+    <Style x:Key="SheetTitle"
+           TargetType="Label">
+        <Setter Property="Padding" Value="2,6,2,0" />
+        <Setter Property="TextColor" Value="{StaticResource SecondaryTextColor}" />
+        <Setter Property="FontSize" Value="11" />
+    </Style>
+
+    <Style x:Key="SheetGrid"
+           TargetType="Grid">
+        <Setter Property="ColumnSpacing" Value="6" />
+        <Setter Property="RowSpacing" Value="4" />
+    </Style>
+
+    <Style x:Key="SheetSwitchLabel"
+           TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource PrimaryTextColor}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="VerticalTextAlignment" Value="Center" />
+    </Style>
+
+    <Style x:Key="SheetSwitch"
+           TargetType="Switch">
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="Scale" Value="0.75" />
+        <Setter Property="HorizontalOptions" Value="End" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="OnColor" Value="{StaticResource BlueDefault}" />
+    </Style>
+
+    <Style x:Key="SheetButton"
+           TargetType="Button">
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="HeightRequest" Value="32" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="BorderWidth" Value="1" />
+        <Setter Property="BorderColor" Value="{StaticResource GrayLighten1}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="TextColor" Value="{StaticResource PrimaryTextColor}" />
+    </Style>
+
+    <!-- ================================================================================ -->
     <!-- Layout -->
     <!-- ================================================================================ -->
 
@@ -329,9 +387,67 @@
     <!-- ================================================================================ -->
 
     <!-- Calendar style declared as a resource; the view refers to it with CalendarStyle="{StaticResource StampCalendarStyle}" -->
+    <clam:CalendarStyle x:Key="AgendaCalendarStyle"
+                        DateNumberFontSize="13" DateNumberMargin="2" DateNumberSize="20" DateRowHeight="22"
+                        EventFontSize="10" EventRowHeight="13" HeaderHeight="40" SlotRowHeight="15"
+                        WeekdayHeaderHeight="26" />
+
+    <clam:CalendarStyle x:Key="CompactCalendarStyle"
+                        DateNumberFontSize="13" DateNumberShape="Circle" DateNumberSize="26" DateRowHeight="26"
+                        EventDisplayMode="Dots" EventDotSize="5" GridLineMode="None" HeaderFontSize="16"
+                        HeaderHeight="40" SlotRowHeight="10" TodayMarkStyle="Outline" TodayTextColor="#1F1F1F"
+                        WeekdayHeaderHeight="24" />
+
     <clam:CalendarStyle x:Key="StampCalendarStyle"
                         FontFamily="sans-serif"
                         DateNumberFontSize="15" MonthIndicatorColor="#12000000" MonthIndicatorFontSize="140" SelectedDayBackground="#F57C00"
                         TodayBackground="#1E88E5" />
+
+    <!-- Templates of ClamCalendarOverlay; the item fills the day cell and aligns itself inside it -->
+    <LinearGradientBrush x:Key="OverlayBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Offset="0" Color="#FF8A65" />
+        <GradientStop Offset="1" Color="#D81B60" />
+    </LinearGradientBrush>
+
+    <Style x:Key="OverlayBadge"
+           TargetType="Border">
+        <Setter Property="Margin" Value="0,0,2,2" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="WidthRequest" Value="16" />
+        <Setter Property="HeightRequest" Value="16" />
+        <Setter Property="HorizontalOptions" Value="End" />
+        <Setter Property="VerticalOptions" Value="End" />
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="Background" Value="{StaticResource OverlayBrush}" />
+        <Setter Property="StrokeShape">
+            <Setter.Value>
+                <RoundRectangle CornerRadius="8" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="OverlayBadgeText"
+           TargetType="Label">
+        <Setter Property="TextColor" Value="White" />
+        <Setter Property="FontSize" Value="9" />
+        <Setter Property="HorizontalTextAlignment" Value="Center" />
+        <Setter Property="VerticalTextAlignment" Value="Center" />
+    </Style>
+
+    <Style x:Key="OverlayBar"
+           TargetType="Border">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="HeightRequest" Value="3" />
+        <Setter Property="TranslationY" Value="3" />
+        <Setter Property="HorizontalOptions" Value="Fill" />
+        <Setter Property="VerticalOptions" Value="End" />
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="Background" Value="{StaticResource OverlayBrush}" />
+        <Setter Property="StrokeShape">
+            <Setter.Value>
+                <RoundRectangle CornerRadius="1.5" />
+            </Setter.Value>
+        </Setter>
+    </Style>
 
 </ResourceDictionary>

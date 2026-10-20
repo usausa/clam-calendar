@@ -1,8 +1,12 @@
 namespace ClamCalendar;
 
+using ClamCalendar.Layout;
+
 // Selection rules of ClamCalendarView kept free of bindable properties so they can be unit tested
 internal static class CalendarSelectionLogic
 {
+    private const int DaysPerWeek = CalendarEventPlacer.DaysPerWeek;
+
     public static bool IsDisabled(DateOnly date, DateOnly? min, DateOnly? max, IReadOnlySet<DateOnly>? disabled) =>
         ((min is { } lower) && (date < lower)) || ((max is { } upper) && (date > upper)) || ((disabled is not null) && disabled.Contains(date));
 
@@ -53,6 +57,25 @@ internal static class CalendarSelectionLogic
         }
 
         return (rangeStart, rangeEnd);
+    }
+
+    public static DateOnly WeekStart(DateOnly date, DayOfWeek firstDayOfWeek) =>
+        date.AddDays(-(((int)date.DayOfWeek - (int)firstDayOfWeek + DaysPerWeek) % DaysPerWeek));
+
+    public static List<DateOnly> SelectWeek(DateOnly date, DayOfWeek firstDayOfWeek, Func<DateOnly, bool> isDisabled)
+    {
+        var start = WeekStart(date, firstDayOfWeek);
+        var dates = new List<DateOnly>(DaysPerWeek);
+        for (var offset = 0; offset < DaysPerWeek; offset++)
+        {
+            var current = start.AddDays(offset);
+            if (!isDisabled(current))
+            {
+                dates.Add(current);
+            }
+        }
+
+        return dates;
     }
 
     public static (DateOnly Start, DateOnly End) Normalize(DateOnly start, DateOnly end) =>

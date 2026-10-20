@@ -13,8 +13,6 @@ using SkiaSharp.Views.Maui;
 
 internal sealed class CalendarRenderer : IDisposable
 {
-    private const float LineWidth = 0.5f;
-
     private readonly CalendarStyle style;
     private readonly FontResolver fonts;
     private readonly SKPaint paint = new() { IsAntialias = true };
@@ -22,6 +20,7 @@ internal sealed class CalendarRenderer : IDisposable
     private readonly Dictionary<(DayOfWeek DayOfWeek, CultureInfo Culture, CalendarWeekdayNameFormat Format), string> weekdayNames = [];
     private readonly ConditionalWeakTable<CalendarEvent, string> eventTexts = [];
     private readonly Dictionary<int, string> overflowTexts = [];
+    private readonly Dictionary<int, string> weekNumberTexts = [];
     private (int Year, int Month, CultureInfo? Culture, CalendarTextFormat? Format) titleKey;
     private string title = String.Empty;
 
@@ -64,6 +63,13 @@ internal sealed class CalendarRenderer : IDisposable
                 var abbreviated = culture.DateTimeFormat.GetAbbreviatedDayName(dayOfWeek);
                 return abbreviated.Length > 0 ? StringInfo.GetNextTextElement(abbreviated).ToUpper(culture) : abbreviated;
         }
+    }
+
+    public static int GetWeekNumber(CalendarWeek week)
+    {
+        var days = week.Days;
+        var offset = ((int)DayOfWeek.Thursday - (int)days[0].Date.DayOfWeek + CalendarLayout.DaysPerWeek) % CalendarLayout.DaysPerWeek;
+        return ISOWeek.GetWeekOfYear(days[offset].Date.ToDateTime(TimeOnly.MinValue));
     }
 
     // Time, glyph and title separated by spaces
@@ -126,12 +132,13 @@ internal sealed class CalendarRenderer : IDisposable
             DrawText(canvas, layout.NextButtonBounds, state.NextButtonText, TextAlignment.Center, style.HeaderFontSize, false, state.CanNavigateForward ? style.NavigationButtonColor : style.DisabledDayTextColor);
         }
 
+        DrawText(canvas, layout.TitleBounds, GetTitle(layout.Month, state.Culture, state.HeaderFormat), TextAlignment.Center, style.HeaderFontSize, true, style.HeaderTextColor, style.EventPadding);
         if (layout.TodayButtonVisible)
         {
+            Fill(canvas, layout.TodayButtonBounds, style.HeaderBackground);
             DrawText(canvas, layout.TodayButtonBounds, state.TodayButtonText, TextAlignment.Center, style.DateNumberFontSize, false, style.NavigationButtonColor, style.EventPadding);
         }
 
-        DrawText(canvas, layout.TitleBounds, GetTitle(layout.Month, state.Culture, state.HeaderFormat), TextAlignment.Center, style.HeaderFontSize, true, style.HeaderTextColor, style.EventPadding);
         DrawHorizontalLine(canvas, bounds.X, bounds.Right, bounds.Bottom);
     }
 
@@ -169,6 +176,8 @@ internal sealed class CalendarRenderer : IDisposable
         }
 
         var month = layout.Month;
+        var horizontalLines = style.GridLineMode is CalendarGridLineMode.All or CalendarGridLineMode.Horizontal;
+        var verticalLines = style.GridLineMode is CalendarGridLineMode.All or CalendarGridLineMode.Vertical;
         canvas.Save();
         canvas.ClipRect(ToSkRect(body));
         var layered = state.SlideOpacity < 1;
@@ -182,7 +191,7 @@ internal sealed class CalendarRenderer : IDisposable
         canvas.Translate(state.SlideOffset, 0);
         if (state.MonthIndicatorVisible)
         {
-            DrawText(canvas, body, month.Month.ToString(CultureInfo.InvariantCulture), TextAlignment.Center, style.MonthIndicatorFontSize, true, style.MonthIndicatorColor);
+            DrawText(canvas, layout.DayAreaBounds, month.Month.ToString(CultureInfo.InvariantCulture), TextAlignment.Center, style.MonthIndicatorFontSize, true, style.MonthIndicatorColor);
         }
 
         for (var w = 0; w < layout.WeekCount; w++)
@@ -195,11 +204,29 @@ internal sealed class CalendarRenderer : IDisposable
             }
 
             // Grid lines go over the cell backgrounds so weekend and holiday fills do not cover them
-            DrawHorizontalLine(canvas, weekBounds.X, weekBounds.Right, weekBounds.Y);
-            for (var column = 0; column < CalendarLayout.DaysPerWeek - 1; column++)
+            if (horizontalLines)
             {
-                var cell = layout.GetCellBounds(w, column);
-                DrawVerticalLine(canvas, cell.Right, cell.Y, cell.Bottom);
+                DrawHorizontalLine(canvas, weekBounds.X, weekBounds.Right, weekBounds.Y);
+            }
+
+            if (verticalLines)
+            {
+                if (layout.WeekNumberWidth > 0)
+                {
+                    DrawVerticalLine(canvas, layout.DayAreaBounds.X, weekBounds.Y, weekBounds.Bottom);
+                }
+
+                for (var column = 0; column < CalendarLayout.DaysPerWeek - 1; column++)
+                {
+                    var cell = layout.GetCellBounds(w, column);
+                    DrawVerticalLine(canvas, cell.Right, cell.Y, cell.Bottom);
+                }
+            }
+
+            if (layout.WeekNumberVisible)
+            {
+                var numberBounds = layout.GetWeekNumberBounds(w);
+                DrawText(canvas, numberBounds with { Height = Math.Min(style.DateRowHeight, numberBounds.Height) }, GetWeekNumberText(GetWeekNumber(week)), TextAlignment.Center, style.WeekNumberFontSize, false, style.WeekNumberTextColor);
             }
 
             for (var column = 0; column < CalendarLayout.DaysPerWeek; column++)
@@ -210,6 +237,7 @@ internal sealed class CalendarRenderer : IDisposable
                     continue;
                 }
 
+                RenderDayBorder(canvas, day, layout.GetCellBounds(w, column));
                 RenderDateNumber(canvas, layout, state, day, w, column);
                 RenderStamps(canvas, day, layout.GetCellBounds(w, column));
             }
@@ -217,7 +245,11 @@ internal sealed class CalendarRenderer : IDisposable
             RenderEvents(canvas, layout, week, w, weekBounds);
         }
 
-        DrawHorizontalLine(canvas, body.X, body.Right, body.Y + (layout.WeekHeight * layout.WeekCount));
+        if (horizontalLines)
+        {
+            DrawHorizontalLine(canvas, body.X, body.Right, body.Y + (layout.WeekHeight * layout.WeekCount));
+        }
+
         if (layered)
         {
             canvas.Restore();
@@ -228,14 +260,14 @@ internal sealed class CalendarRenderer : IDisposable
 
     private void RenderCellBackground(SKCanvas canvas, CalendarLayout layout, CalendarRenderState state, CalendarDay day, CalendarRect cell, int week, int column)
     {
-        var background = !day.IsCurrentMonth
+        var background = day.Appearance?.Background ?? (!day.IsCurrentMonth
             ? style.OutsideMonthBackground
             : day.Kind switch
             {
                 CalendarDayKind.Holiday => style.HolidayBackground,
                 CalendarDayKind.Saturday or CalendarDayKind.Sunday => style.WeekendBackground,
                 _ => null
-            };
+            });
         if (background is not null)
         {
             Fill(canvas, cell, background);
@@ -247,6 +279,20 @@ internal sealed class CalendarRenderer : IDisposable
         }
     }
 
+    private void RenderDayBorder(SKCanvas canvas, CalendarDay day, CalendarRect cell)
+    {
+        if ((day.Appearance is not { BorderColor: { } color, BorderWidth: { } width }) || !Double.IsFinite(width) || (width <= 0) || cell.IsEmpty)
+        {
+            return;
+        }
+
+        var inset = width / 2;
+        paint.Style = SKPaintStyle.Stroke;
+        paint.StrokeWidth = (float)width;
+        paint.Color = color.ToSKColor();
+        canvas.DrawRect(ToSkRect(new CalendarRect(cell.X + inset, cell.Y + inset, cell.Width - width, cell.Height - width)), paint);
+    }
+
     private void RenderDateNumber(SKCanvas canvas, CalendarLayout layout, CalendarRenderState state, CalendarDay day, int week, int column)
     {
         var bubble = layout.GetDateNumberBounds(week, column);
@@ -256,7 +302,9 @@ internal sealed class CalendarRenderer : IDisposable
         }
 
         Color textColor;
-        Color? bubbleColor = null;
+        Color? markColor = null;
+        var markStyle = CalendarMarkStyle.Fill;
+        var selected = false;
         if (state.IsDisabled?.Invoke(day.Date) ?? false)
         {
             textColor = style.DisabledDayTextColor;
@@ -264,32 +312,85 @@ internal sealed class CalendarRenderer : IDisposable
         else if (state.IsSelected?.Invoke(day.Date) ?? false)
         {
             textColor = style.SelectedDayTextColor;
-            bubbleColor = style.SelectedDayBackground;
+            markColor = style.SelectedDayBackground;
+            markStyle = style.SelectedMarkStyle;
+            selected = true;
         }
         else if (day.IsToday)
         {
             textColor = style.TodayTextColor;
-            bubbleColor = style.TodayBackground;
+            markColor = style.TodayBackground;
+            markStyle = style.TodayMarkStyle;
         }
         else
         {
-            textColor = GetDateTextColor(day);
+            textColor = day.Appearance?.DateNumberColor ?? GetDateTextColor(day);
+            markColor = day.Appearance?.DateNumberBackground;
         }
 
-        if (bubbleColor is not null)
+        if (markColor is not null)
         {
-            var radius = (float)(bubble.Height / 2 * 0.3);
-            paint.Style = SKPaintStyle.Fill;
-            paint.Color = bubbleColor.ToSKColor();
-            canvas.DrawRoundRect(ToSkRect(bubble), radius, radius, paint);
+            DrawDateNumberMark(canvas, bubble, markColor, markStyle);
         }
 
-        DrawText(canvas, bubble, day.Date.Day.ToString(CultureInfo.InvariantCulture), TextAlignment.Center, style.DateNumberFontSize, true, textColor);
+        if (selected && day.IsToday && style.TodayMarkOnSelected)
+        {
+            DrawDateNumberMark(canvas, bubble, style.TodayBackground, style.TodayMarkStyle);
+        }
+
+        DrawText(canvas, bubble, day.Date.Day.ToString(CultureInfo.InvariantCulture), TextAlignment.Center, style.DateNumberFontSize, style.DateNumberBold, textColor);
         if (!String.IsNullOrEmpty(day.Label))
         {
             var cell = layout.GetCellBounds(week, column);
             var labelBounds = new CalendarRect(bubble.Right + 2, bubble.Y, cell.Right - bubble.Right - 4, bubble.Height);
-            DrawText(canvas, labelBounds, day.Label, TextAlignment.Start, style.DayLabelFontSize, false, day.IsCurrentMonth ? style.DayLabelTextColor : style.OutsideMonthTextColor);
+            DrawText(canvas, labelBounds, day.Label, TextAlignment.Start, style.DayLabelFontSize, false, day.Appearance?.LabelColor ?? (day.IsCurrentMonth ? style.DayLabelTextColor : style.OutsideMonthTextColor));
+        }
+    }
+
+    private void DrawDateNumberMark(SKCanvas canvas, CalendarRect bubble, Color color, CalendarMarkStyle markStyle)
+    {
+        switch (markStyle)
+        {
+            case CalendarMarkStyle.Fill:
+                paint.Style = SKPaintStyle.Fill;
+                paint.Color = color.ToSKColor();
+                DrawDateNumberShape(canvas, bubble);
+                break;
+            case CalendarMarkStyle.Outline:
+            {
+                var width = style.DateNumberMarkWidth;
+                paint.Style = SKPaintStyle.Stroke;
+                paint.StrokeWidth = (float)width;
+                paint.Color = color.ToSKColor();
+                DrawDateNumberShape(canvas, new CalendarRect(bubble.X + (width / 2), bubble.Y + (width / 2), bubble.Width - width, bubble.Height - width));
+                break;
+            }
+
+            case CalendarMarkStyle.Underline:
+                paint.Style = SKPaintStyle.Fill;
+                paint.Color = color.ToSKColor();
+                canvas.DrawRect(ToSkRect(new CalendarRect(bubble.X, bubble.Bottom - style.DateNumberMarkWidth, bubble.Width, style.DateNumberMarkWidth)), paint);
+                break;
+            case CalendarMarkStyle.None:
+            default:
+                break;
+        }
+    }
+
+    private void DrawDateNumberShape(SKCanvas canvas, CalendarRect rect)
+    {
+        switch (style.DateNumberShape)
+        {
+            case CalendarDateNumberShape.Circle:
+                canvas.DrawCircle((float)rect.CenterX, (float)rect.CenterY, (float)(Math.Min(rect.Width, rect.Height) / 2), paint);
+                break;
+            case CalendarDateNumberShape.Square:
+                canvas.DrawRect(ToSkRect(rect), paint);
+                break;
+            default:
+                var radius = (float)(rect.Height / 2 * 0.3);
+                canvas.DrawRoundRect(ToSkRect(rect), radius, radius, paint);
+                break;
         }
     }
 
@@ -331,7 +432,7 @@ internal sealed class CalendarRenderer : IDisposable
                 _ => metrics.GetCenterBaseline((float)cell.CenterY)
             };
             paint.Style = SKPaintStyle.Fill;
-            paint.Color = SKColors.Black.WithOpacity((float)stamp.Opacity);
+            paint.Color = (stamp.Color ?? style.StampColor).ToSKColor().WithOpacity((float)stamp.Opacity);
             canvas.Save();
             canvas.ClipRect(ToSkRect(cell));
             canvas.DrawText(text, (float)x, baseline, textAlign, paint);
@@ -348,6 +449,46 @@ internal sealed class CalendarRenderer : IDisposable
 
         canvas.Save();
         canvas.ClipRect(ToSkRect(weekBounds));
+        if (style.EventDisplayMode == CalendarEventDisplayMode.Dots)
+        {
+            RenderEventDots(canvas, layout, week, weekIndex);
+        }
+        else
+        {
+            RenderEventBars(canvas, layout, week, weekIndex);
+        }
+
+        canvas.Restore();
+    }
+
+    private void RenderEventDots(SKCanvas canvas, CalendarLayout layout, CalendarWeek week, int weekIndex)
+    {
+        paint.Style = SKPaintStyle.Fill;
+        for (var column = 0; column < CalendarLayout.DaysPerWeek; column++)
+        {
+            var day = week.Days[column];
+            var bounds = layout.GetSlotBounds(weekIndex, 0, column, 1);
+            if ((day.Events.Count == 0) || bounds.IsEmpty)
+            {
+                continue;
+            }
+
+            var count = style.MaxVisibleDots > 0 ? Math.Min(day.Events.Count, style.MaxVisibleDots) : day.Events.Count;
+            var size = (float)style.EventDotSize;
+            var step = size + (float)style.EventDotSpacing;
+            var left = (float)bounds.CenterX - (((count * size) + ((count - 1) * (float)style.EventDotSpacing)) / 2) + (size / 2);
+            var y = (float)bounds.CenterY;
+            for (var i = 0; i < count; i++)
+            {
+                var calendarEvent = day.Events[i];
+                paint.Color = (calendarEvent.Style == CalendarEventStyle.Text ? calendarEvent.TextColor : calendarEvent.BackgroundColor).ToSKColor();
+                canvas.DrawCircle(left + (i * step), y, size / 2, paint);
+            }
+        }
+    }
+
+    private void RenderEventBars(SKCanvas canvas, CalendarLayout layout, CalendarWeek week, int weekIndex)
+    {
         var placements = week.Placements;
         // ReSharper disable once ForCanBeConvertedToForeach
         for (var i = 0; i < placements.Count; i++)
@@ -383,8 +524,6 @@ internal sealed class CalendarRenderer : IDisposable
                 DrawText(canvas, layout.GetOverflowBounds(weekIndex, column), GetOverflowText(day.HiddenEventCount), TextAlignment.Start, style.EventFontSize, false, style.OverflowTextColor, style.EventPadding);
             }
         }
-
-        canvas.Restore();
     }
 
     private Color GetDateTextColor(CalendarDay day)
@@ -438,6 +577,17 @@ internal sealed class CalendarRenderer : IDisposable
         return text;
     }
 
+    private string GetWeekNumberText(int number)
+    {
+        if (!weekNumberTexts.TryGetValue(number, out var text))
+        {
+            text = number.ToString(CultureInfo.InvariantCulture);
+            weekNumberTexts[number] = text;
+        }
+
+        return text;
+    }
+
     private void DrawText(SKCanvas canvas, CalendarRect rect, string text, TextAlignment alignment, double size, bool bold, Color color, double padding = 0)
     {
         var available = (float)(rect.Width - (padding * 2));
@@ -480,14 +630,16 @@ internal sealed class CalendarRenderer : IDisposable
 
     private void DrawHorizontalLine(SKCanvas canvas, double left, double right, double y)
     {
+        var width = (float)style.GridLineWidth;
         fillPaint.Color = style.GridLineColor.ToSKColor();
-        canvas.DrawRect(SKRect.Create((float)left, (float)y - (LineWidth / 2), (float)(right - left), LineWidth), fillPaint);
+        canvas.DrawRect(SKRect.Create((float)left, (float)y - (width / 2), (float)(right - left), width), fillPaint);
     }
 
     private void DrawVerticalLine(SKCanvas canvas, double x, double top, double bottom)
     {
+        var width = (float)style.GridLineWidth;
         fillPaint.Color = style.GridLineColor.ToSKColor();
-        canvas.DrawRect(SKRect.Create((float)x - (LineWidth / 2), (float)top, LineWidth, (float)(bottom - top)), fillPaint);
+        canvas.DrawRect(SKRect.Create((float)x - (width / 2), (float)top, width, (float)(bottom - top)), fillPaint);
     }
 
     private static SKRect ToSkRect(CalendarRect rect) => new((float)rect.X, (float)rect.Y, (float)rect.Right, (float)rect.Bottom);

@@ -6,6 +6,8 @@ using ClamCalendar.Layout;
 using ClamCalendar.Platform;
 using ClamCalendar.Rendering;
 
+using Microsoft.Maui.Dispatching;
+
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 
@@ -15,7 +17,8 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
     public static readonly BindableProperty StampsProperty = BindableProperty.Create(nameof(Stamps), typeof(IEnumerable<CalendarStamp>), typeof(ClamCalendarView), propertyChanged: OnStampsChanged);
     public static readonly BindableProperty HolidaysProperty = BindableProperty.Create(nameof(Holidays), typeof(IEnumerable<DateOnly>), typeof(ClamCalendarView), propertyChanged: OnHolidaysChanged);
     public static readonly BindableProperty DayLabelsProperty = BindableProperty.Create(nameof(DayLabels), typeof(IReadOnlyDictionary<DateOnly, string>), typeof(ClamCalendarView), propertyChanged: OnMonthInputChanged);
-    public static readonly BindableProperty TodayProperty = BindableProperty.Create(nameof(Today), typeof(DateOnly?), typeof(ClamCalendarView), propertyChanged: OnMonthInputChanged);
+    public static readonly BindableProperty DayAppearancesProperty = BindableProperty.Create(nameof(DayAppearances), typeof(IReadOnlyDictionary<DateOnly, CalendarDayAppearance>), typeof(ClamCalendarView), propertyChanged: OnMonthInputChanged);
+    public static readonly BindableProperty TodayProperty = BindableProperty.Create(nameof(Today), typeof(DateOnly?), typeof(ClamCalendarView), propertyChanged: OnTodayChanged);
     public static readonly BindableProperty FirstDayOfWeekProperty = BindableProperty.Create(nameof(FirstDayOfWeek), typeof(DayOfWeek), typeof(ClamCalendarView), DayOfWeek.Monday, propertyChanged: OnMonthInputChanged);
     public static readonly BindableProperty CultureProperty = BindableProperty.Create(nameof(Culture), typeof(CultureInfo), typeof(ClamCalendarView), propertyChanged: OnRenderInputChanged);
     public static readonly BindableProperty FixedWeekRowsProperty = BindableProperty.Create(nameof(FixedWeekRows), typeof(bool), typeof(ClamCalendarView), true, propertyChanged: OnMonthInputChanged);
@@ -31,6 +34,7 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
     public static readonly BindableProperty WeekdayHeaderVisibleProperty = BindableProperty.Create(nameof(WeekdayHeaderVisible), typeof(bool), typeof(ClamCalendarView), true, propertyChanged: OnLayoutInputChanged);
     public static readonly BindableProperty WeekdayNameFormatProperty = BindableProperty.Create(nameof(WeekdayNameFormat), typeof(CalendarWeekdayNameFormat), typeof(ClamCalendarView), CalendarWeekdayNameFormat.Initial, propertyChanged: OnRenderInputChanged);
     public static readonly BindableProperty MonthIndicatorVisibleProperty = BindableProperty.Create(nameof(MonthIndicatorVisible), typeof(bool), typeof(ClamCalendarView), false, propertyChanged: OnRenderInputChanged);
+    public static readonly BindableProperty WeekNumberVisibleProperty = BindableProperty.Create(nameof(WeekNumberVisible), typeof(bool), typeof(ClamCalendarView), false, propertyChanged: OnLayoutInputChanged);
     public static readonly BindableProperty CalendarStyleProperty = BindableProperty.Create(nameof(CalendarStyle), typeof(CalendarStyle), typeof(ClamCalendarView), defaultValueCreator: static _ => new CalendarStyle(), validateValue: static (_, value) => CalendarStyle.ValidateValue(value), propertyChanged: OnStyleChanged);
 
     private readonly CalendarCollectionWatcher eventsWatcher;
@@ -43,6 +47,7 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
     private CalendarTextFormat? headerFormat;
     private CalendarLayout? currentLayout;
     private ICalendarPlatformBridge? platform;
+    private IDispatcherTimer? dateTimer;
     private bool layoutDirty = true;
     private bool disposed;
 
@@ -68,6 +73,12 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
     {
         get => (IReadOnlyDictionary<DateOnly, string>?)GetValue(DayLabelsProperty);
         set => SetValue(DayLabelsProperty, value);
+    }
+
+    public IReadOnlyDictionary<DateOnly, CalendarDayAppearance>? DayAppearances
+    {
+        get => (IReadOnlyDictionary<DateOnly, CalendarDayAppearance>?)GetValue(DayAppearancesProperty);
+        set => SetValue(DayAppearancesProperty, value);
     }
 
     // Overrides the system date used for the today mark and GoToToday
@@ -167,6 +178,12 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
         set => SetValue(MonthIndicatorVisibleProperty, value);
     }
 
+    public bool WeekNumberVisible
+    {
+        get => (bool)GetValue(WeekNumberVisibleProperty);
+        set => SetValue(WeekNumberVisibleProperty, value);
+    }
+
     public CalendarStyle CalendarStyle
     {
         get => (CalendarStyle)GetValue(CalendarStyleProperty);
@@ -237,6 +254,13 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
             inputTimer = null;
         }
 
+        if (dateTimer is not null)
+        {
+            dateTimer.Stop();
+            dateTimer.Tick -= OnDateTick;
+            dateTimer = null;
+        }
+
         DeactivateWatchers();
         DetachPlatform();
         renderer?.Dispose();
@@ -250,6 +274,7 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
     {
         CancelInput(true);
         AbortSlide();
+        StopDateTimer();
         DeactivateWatchers();
         DetachPlatform();
         renderer?.Dispose();
@@ -267,6 +292,7 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
             UpdateDisabledDates();
             RebuildMonth(false);
             AnnounceDisplayRange(true);
+            StartDateTimer();
         }
 
         AttachPlatform();
@@ -335,8 +361,8 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
         IsSelected = isDateSelected,
         IsInRange = isDateInSelectedRange,
         IsDisabled = isDateDisabled,
-        SlideOffset = SlideOffset,
-        SlideOpacity = SlideOpacity
+        SlideOffset = (float)SlideOffset,
+        SlideOpacity = (float)SlideOpacity
     };
 
     //--------------------------------------------------------------------------------
@@ -360,13 +386,43 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
             MaxVisibleSlots = MaxVisibleSlots
         };
         var display = DisplayDate;
-        Month = builder.Build(display.Year, display.Month, EffectiveToday, Events, Stamps, Holidays, DayLabels);
+        Month = builder.Build(display.Year, display.Month, EffectiveToday, Events, Stamps, Holidays, DayLabels, DayAppearances);
         OnPropertyChanged(nameof(Month));
         InvalidateLayout();
         if (announce)
         {
             AnnounceDisplayRange(false);
         }
+    }
+
+    private void StartDateTimer()
+    {
+        if (disposed || (Handler is null) || (Today is not null))
+        {
+            return;
+        }
+
+        if (dateTimer is null)
+        {
+            dateTimer = Dispatcher.CreateTimer();
+            dateTimer.IsRepeating = false;
+            dateTimer.Tick += OnDateTick;
+        }
+
+        dateTimer.Interval = CalendarNavigation.NextDateChangeDelay(DateTime.Now);
+        dateTimer.Start();
+    }
+
+    private void StopDateTimer() => dateTimer?.Stop();
+
+    private void OnDateTick(object? sender, EventArgs e)
+    {
+        if (Month.Today != DateOnly.FromDateTime(DateTime.Today))
+        {
+            RebuildMonth(false);
+        }
+
+        StartDateTimer();
     }
 
     private void ActivateWatchers()
@@ -411,6 +467,14 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
     private static void OnMonthInputChanged(BindableObject bindable, object oldValue, object newValue) =>
         ((ClamCalendarView)bindable).RebuildMonth();
 
+    private static void OnTodayChanged(BindableObject bindable, object oldValue, object newValue)
+    {
+        var view = (ClamCalendarView)bindable;
+        view.RebuildMonth();
+        view.StopDateTimer();
+        view.StartDateTimer();
+    }
+
     private static void OnLayoutInputChanged(BindableObject bindable, object oldValue, object newValue)
     {
         var view = (ClamCalendarView)bindable;
@@ -445,6 +509,38 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
 
     private void OnUnloaded(object? sender, EventArgs e) => CancelInput(true);
 
+    //--------------------------------------------------------------------------------
+    // Geometry
+    //--------------------------------------------------------------------------------
+
+    public Rect DayAreaBounds
+    {
+        get
+        {
+            EnsureLayout();
+            return currentLayout is { } layout ? ToRect(layout.DayAreaBounds) : Rect.Zero;
+        }
+    }
+
+    public Rect? GetDayBounds(DateOnly date) =>
+        Locate(date) is { } located ? ToRect(located.Layout.GetCellBounds(located.Week, located.Column)) : null;
+
+    public Rect? GetDateNumberBounds(DateOnly date) =>
+        Locate(date) is { } located ? ToRect(located.Layout.GetDateNumberBounds(located.Week, located.Column)) : null;
+
+    private (CalendarLayout Layout, int Week, int Column)? Locate(DateOnly date)
+    {
+        EnsureLayout();
+        if ((currentLayout is not { } layout) || (CalendarNavigation.LocatePosition(new CalendarDateRange(Month.FirstDate, Month.LastDate), date) is not { } position))
+        {
+            return null;
+        }
+
+        return (layout, position.Week, position.Column);
+    }
+
+    private static Rect ToRect(CalendarRect rect) => new(rect.X, rect.Y, rect.Width, rect.Height);
+
     private void InvalidateLayout()
     {
         layoutDirty = true;
@@ -459,7 +555,7 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
         }
 
         renderer ??= new CalendarRenderer(CalendarStyle);
-        currentLayout = new CalendarLayout(Month, CalendarStyle, Width, Height, HeaderVisible, NavigationButtonsVisible, TodayButtonVisible, WeekdayHeaderVisible);
+        currentLayout = new CalendarLayout(Month, CalendarStyle, Width, Height, HeaderVisible, NavigationButtonsVisible, TodayButtonVisible, WeekdayHeaderVisible, WeekNumberVisible);
         layoutDirty = false;
     }
 

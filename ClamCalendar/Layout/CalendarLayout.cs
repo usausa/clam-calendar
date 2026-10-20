@@ -21,6 +21,8 @@ internal sealed class CalendarLayout
 
     public bool WeekdayHeaderVisible { get; }
 
+    public bool WeekNumberVisible { get; }
+
     public CalendarRect HeaderBounds { get; }
 
     public CalendarRect PrevButtonBounds { get; }
@@ -37,11 +39,15 @@ internal sealed class CalendarLayout
 
     public int WeekCount => Month.Weeks.Count;
 
-    public double ColumnWidth => BodyBounds.Width / DaysPerWeek;
+    public double WeekNumberWidth => WeekNumberVisible ? Math.Min(Style.WeekNumberWidth, BodyBounds.Width) : 0;
+
+    public double ColumnWidth => Math.Max(0, BodyBounds.Width - WeekNumberWidth) / DaysPerWeek;
+
+    public CalendarRect DayAreaBounds => BodyBounds with { X = BodyBounds.X + WeekNumberWidth, Width = Math.Max(0, BodyBounds.Width - WeekNumberWidth) };
 
     public double WeekHeight => WeekCount == 0 ? 0 : BodyBounds.Height / WeekCount;
 
-    public CalendarLayout(CalendarMonth month, CalendarStyle style, double width, double height, bool headerVisible = true, bool navigationButtonsVisible = true, bool todayButtonVisible = false, bool weekdayHeaderVisible = true)
+    public CalendarLayout(CalendarMonth month, CalendarStyle style, double width, double height, bool headerVisible = true, bool navigationButtonsVisible = true, bool todayButtonVisible = false, bool weekdayHeaderVisible = true, bool weekNumberVisible = false)
     {
         ArgumentNullException.ThrowIfNull(month);
         ArgumentNullException.ThrowIfNull(style);
@@ -55,6 +61,7 @@ internal sealed class CalendarLayout
         NavigationButtonsVisible = headerVisible && navigationButtonsVisible;
         TodayButtonVisible = headerVisible && todayButtonVisible;
         WeekdayHeaderVisible = weekdayHeaderVisible;
+        WeekNumberVisible = weekNumberVisible;
 
         var y = 0d;
         if (headerVisible)
@@ -72,14 +79,12 @@ internal sealed class CalendarLayout
                 right = NextButtonBounds.X;
             }
 
+            TitleBounds = new CalendarRect(left, 0, Math.Max(0, right - left), headerHeight);
             if (todayButtonVisible)
             {
                 var todayWidth = Math.Min(style.TodayButtonWidth, Math.Max(0, right - left));
                 TodayButtonBounds = new CalendarRect(right - todayWidth, 0, todayWidth, headerHeight);
-                right = TodayButtonBounds.X;
             }
-
-            TitleBounds = new CalendarRect(left, 0, Math.Max(0, right - left), headerHeight);
             y = headerHeight;
         }
 
@@ -96,17 +101,22 @@ internal sealed class CalendarLayout
     public CalendarRect GetWeekdayHeaderCellBounds(int column) =>
         !WeekdayHeaderVisible || (column < 0) || (column >= DaysPerWeek)
             ? default
-            : new CalendarRect(WeekdayHeaderBounds.X + (column * ColumnWidth), WeekdayHeaderBounds.Y, ColumnWidth, WeekdayHeaderBounds.Height);
+            : new CalendarRect(WeekdayHeaderBounds.X + WeekNumberWidth + (column * ColumnWidth), WeekdayHeaderBounds.Y, ColumnWidth, WeekdayHeaderBounds.Height);
 
     public CalendarRect GetWeekBounds(int week) =>
         (week < 0) || (week >= WeekCount)
             ? default
             : new CalendarRect(BodyBounds.X, BodyBounds.Y + (week * WeekHeight), BodyBounds.Width, WeekHeight);
 
+    public CalendarRect GetWeekNumberBounds(int week) =>
+        !WeekNumberVisible || (week < 0) || (week >= WeekCount)
+            ? default
+            : new CalendarRect(BodyBounds.X, BodyBounds.Y + (week * WeekHeight), WeekNumberWidth, WeekHeight);
+
     public CalendarRect GetCellBounds(int week, int column) =>
         (week < 0) || (week >= WeekCount) || (column < 0) || (column >= DaysPerWeek)
             ? default
-            : new CalendarRect(BodyBounds.X + (column * ColumnWidth), BodyBounds.Y + (week * WeekHeight), ColumnWidth, WeekHeight);
+            : new CalendarRect(BodyBounds.X + WeekNumberWidth + (column * ColumnWidth), BodyBounds.Y + (week * WeekHeight), ColumnWidth, WeekHeight);
 
     // Upper part of the cell that holds the date number and the label; the range background is drawn here
     public CalendarRect GetDateRowBounds(int week, int column)
@@ -130,7 +140,7 @@ internal sealed class CalendarLayout
             return default;
         }
 
-        var rect = new CalendarRect(bounds.X + (startColumn * ColumnWidth), bounds.Y + Style.DateRowHeight + (slot * Style.SlotRowHeight) + 1, columnSpan * ColumnWidth, Style.EventRowHeight);
+        var rect = new CalendarRect(bounds.X + WeekNumberWidth + (startColumn * ColumnWidth), bounds.Y + Style.DateRowHeight + (slot * Style.SlotRowHeight) + 1, columnSpan * ColumnWidth, Style.EventRowHeight);
         return rect.Intersect(bounds);
     }
 
@@ -190,6 +200,11 @@ internal sealed class CalendarLayout
 
         var week = Math.Min(WeekCount - 1, (int)((y - BodyBounds.Y) / WeekHeight));
         var column = ToColumn(x);
+        if (Style.EventDisplayMode == CalendarEventDisplayMode.Dots)
+        {
+            return new CalendarHit(CalendarHitKind.Day, week, column);
+        }
+
         foreach (var placement in Month.Weeks[week].Placements)
         {
             if (GetEventBounds(week, placement).Contains(x, y))
@@ -206,7 +221,7 @@ internal sealed class CalendarLayout
         return new CalendarHit(CalendarHitKind.Day, week, column);
     }
 
-    private int ToColumn(double x) => Math.Clamp((int)((x - BodyBounds.X) / ColumnWidth), 0, DaysPerWeek - 1);
+    private int ToColumn(double x) => ColumnWidth <= 0 ? 0 : Math.Clamp((int)((x - BodyBounds.X - WeekNumberWidth) / ColumnWidth), 0, DaysPerWeek - 1);
 
     private static void RequireDimension(double value, string name)
     {

@@ -37,6 +37,7 @@
 
   <ItemGroup>
     <PackageReference Include="BunnyTail.DependencyInjection" Version="0.9.0" />
+    <PackageReference Include="Components.Maui.Controls" Version="1.50.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.12">
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">none</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">all</PrivateAssets>

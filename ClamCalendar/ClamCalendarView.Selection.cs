@@ -70,7 +70,7 @@ public partial class ClamCalendarView
     public bool IsDateSelected(DateOnly date) => SelectionMode switch
     {
         CalendarSelectionMode.SingleDate => SelectedDate == date,
-        CalendarSelectionMode.MultipleDates => SelectedDates.Contains(date),
+        CalendarSelectionMode.MultipleDates or CalendarSelectionMode.Week => SelectedDates.Contains(date),
         CalendarSelectionMode.DateRange => CalendarSelectionLogic.IsInRange(date, SelectedStartDate, SelectedEndDate),
         _ => false
     };
@@ -96,7 +96,7 @@ public partial class ClamCalendarView
 
     // The band behind the date numbers covers the whole range; the selected-day bubble is drawn over its ends
     internal bool IsDateInSelectedRange(DateOnly date) =>
-        (SelectionMode == CalendarSelectionMode.DateRange) && CalendarSelectionLogic.IsInRange(date, SelectedStartDate, SelectedEndDate);
+        (SelectionMode is CalendarSelectionMode.DateRange or CalendarSelectionMode.Week) && CalendarSelectionLogic.IsInRange(date, SelectedStartDate, SelectedEndDate);
 
     // Applies a tap to the selection and reports whether it changed
     internal bool SelectDay(DateOnly date)
@@ -147,6 +147,32 @@ public partial class ClamCalendarView
                 {
                     SelectedStartDate = start;
                     SelectedEndDate = end;
+                }
+                finally
+                {
+                    selectionUpdating = false;
+                }
+
+                OnSelectionChanged();
+                return true;
+            case CalendarSelectionMode.Week:
+                var week = CalendarSelectionLogic.SelectWeek(date, FirstDayOfWeek, IsDateDisabled);
+                if ((week[0] == SelectedStartDate) && (week[^1] == SelectedEndDate))
+                {
+                    return false;
+                }
+
+                selectionUpdating = true;
+                try
+                {
+                    SelectedDates.Clear();
+                    foreach (var day in week)
+                    {
+                        SelectedDates.Add(day);
+                    }
+
+                    SelectedStartDate = week[0];
+                    SelectedEndDate = week[^1];
                 }
                 finally
                 {

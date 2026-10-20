@@ -36,16 +36,19 @@
                 Text="4.Booking" />
         <Button Grid.Row="4"
                 Style="{StaticResource MenuButton}"
-                IsEnabled="False"
-                Text="" />
+                Command="{Binding ForwardCommand}"
+                CommandParameter="{x:Static modules:ViewId.CalendarOverlay}"
+                Text="5.Overlay" />
         <Button Grid.Row="5"
                 Style="{StaticResource MenuButton}"
-                IsEnabled="False"
-                Text="" />
+                Command="{Binding ForwardCommand}"
+                CommandParameter="{x:Static modules:ViewId.CalendarAgenda}"
+                Text="6.Agenda" />
         <Button Grid.Row="6"
                 Style="{StaticResource MenuButton}"
-                IsEnabled="False"
-                Text="" />
+                Command="{Binding ForwardCommand}"
+                CommandParameter="{x:Static modules:ViewId.CalendarCompact}"
+                Text="7.Compact" />
     </Grid>
 
 </ContentView>

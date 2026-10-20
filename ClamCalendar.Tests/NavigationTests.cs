@@ -147,4 +147,44 @@ public sealed class NavigationTests
         Assert.NotNull(received);
         Assert.Equal(new DateOnly(2026, 10, 1), received.DisplayDate);
     }
+
+    [Fact]
+    public void PositionOfADateIsItsRowAndColumn()
+    {
+        // Arrange
+        var range = new CalendarDateRange(new DateOnly(2026, 8, 31), new DateOnly(2026, 10, 11));
+
+        // Act & Assert
+        Assert.Equal((0, 0), CalendarNavigation.LocatePosition(range, new DateOnly(2026, 8, 31)));
+        Assert.Equal((1, 3), CalendarNavigation.LocatePosition(range, new DateOnly(2026, 9, 10)));
+        Assert.Equal((5, 6), CalendarNavigation.LocatePosition(range, new DateOnly(2026, 10, 11)));
+        Assert.Null(CalendarNavigation.LocatePosition(range, new DateOnly(2026, 8, 30)));
+        Assert.Null(CalendarNavigation.LocatePosition(range, new DateOnly(2026, 10, 12)));
+    }
+
+    [Fact]
+    public void GeometryIsUnavailableUntilTheViewHasASize()
+    {
+        // Arrange
+        using var view = new ClamCalendarView();
+        view.DisplayDate = new DateOnly(2026, 9, 1);
+
+        // Act & Assert
+        Assert.Equal(Rect.Zero, view.DayAreaBounds);
+        Assert.Equal(0, view.SlideOffset);
+        Assert.Equal(1, view.SlideOpacity);
+        Assert.Null(view.GetDayBounds(new DateOnly(2026, 9, 10)));
+        Assert.Null(view.GetDateNumberBounds(new DateOnly(2026, 9, 10)));
+        Assert.Null(view.GetDayBounds(new DateOnly(2026, 7, 1)));
+    }
+
+    [Fact]
+    public void DateChangeDelayReachesTheNextDayWithAMargin()
+    {
+        // Act & Assert
+        Assert.Equal(TimeSpan.FromDays(1) + TimeSpan.FromSeconds(1), CalendarNavigation.NextDateChangeDelay(new DateTime(2026, 10, 19, 0, 0, 0, DateTimeKind.Local)));
+        Assert.Equal(TimeSpan.FromHours(12) + TimeSpan.FromSeconds(1), CalendarNavigation.NextDateChangeDelay(new DateTime(2026, 10, 19, 12, 0, 0, DateTimeKind.Local)));
+        Assert.Equal(TimeSpan.FromSeconds(32), CalendarNavigation.NextDateChangeDelay(new DateTime(2026, 10, 19, 23, 59, 29, DateTimeKind.Local)));
+        Assert.Equal(TimeSpan.FromSeconds(1.5), CalendarNavigation.NextDateChangeDelay(new DateTime(2026, 10, 19, 23, 59, 59, 500, DateTimeKind.Local)));
+    }
 }

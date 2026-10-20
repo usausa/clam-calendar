@@ -4,10 +4,6 @@ public sealed partial class CalendarStampsViewModel : AppViewModelBase
 {
     private static readonly string[] Glyphs = ["⭐", "🍀", "🎂", "🏃", "📚", "🎵"];
 
-    private bool stampsVisible = true;
-
-    private bool labelsVisible = true;
-
     private CalendarDateRange range;
 
     [ObservableProperty]
@@ -20,10 +16,46 @@ public sealed partial class CalendarStampsViewModel : AppViewModelBase
     public partial IReadOnlyList<DateOnly> Holidays { get; set; } = [];
 
     [ObservableProperty]
+    public partial IReadOnlyDictionary<DateOnly, CalendarDayAppearance>? DayAppearances { get; set; }
+
+    [ObservableProperty]
     public partial IReadOnlyDictionary<DateOnly, string>? DayLabels { get; set; }
 
     [ObservableProperty]
-    public partial string Status { get; set; } = "Tap a day to add a stamp, long press to remove its stamps.";
+    public partial bool IsSettingOpen { get; set; }
+
+    public bool StampsVisible
+    {
+        get;
+        set
+        {
+            if (field != value)
+            {
+                field = value;
+                RaisePropertyChanged(nameof(StampsVisible));
+                LoadStamps();
+            }
+        }
+    }
+        = true;
+
+    public bool LabelsVisible
+    {
+        get;
+        set
+        {
+            if (field != value)
+            {
+                field = value;
+                RaisePropertyChanged(nameof(LabelsVisible));
+                LoadLabels();
+            }
+        }
+    }
+        = true;
+
+    [ObservableProperty]
+    public partial string Status { get; set; } = String.Empty;
 
     public IObserveCommand DisplayDateChangedCommand { get; }
 
@@ -46,23 +78,22 @@ public sealed partial class CalendarStampsViewModel : AppViewModelBase
     // Navigation
     //--------------------------------------------------------------------------------
 
-    protected override Task OnNotifyBackAsync() => Navigator.ForwardAsync(ViewId.CalendarMenu);
+    protected override Task OnNotifyBackAsync()
+    {
+        if (IsSettingOpen)
+        {
+            IsSettingOpen = false;
+            return Task.CompletedTask;
+        }
+
+        return Navigator.ForwardAsync(ViewId.CalendarMenu);
+    }
 
     protected override Task OnNotifyFunction1() => OnNotifyBackAsync();
 
     protected override Task OnNotifyFunction2()
     {
-        stampsVisible = !stampsVisible;
-        LoadStamps();
-        Status = stampsVisible ? "Sample stamps shown." : "Sample stamps hidden.";
-        return Task.CompletedTask;
-    }
-
-    protected override Task OnNotifyFunction3()
-    {
-        labelsVisible = !labelsVisible;
-        LoadLabels();
-        Status = labelsVisible ? "Holiday labels shown." : "Holiday labels hidden.";
+        IsSettingOpen = !IsSettingOpen;
         return Task.CompletedTask;
     }
 
@@ -80,6 +111,7 @@ public sealed partial class CalendarStampsViewModel : AppViewModelBase
     {
         range = new CalendarDateRange(e.FirstDate, e.LastDate);
         Holidays = SampleHolidays.GetHolidays(e.FirstDate, e.LastDate);
+        DayAppearances = SampleSchedule.CreateDayAppearances(e.FirstDate, e.LastDate);
         LoadStamps();
         LoadLabels();
     }
@@ -87,7 +119,7 @@ public sealed partial class CalendarStampsViewModel : AppViewModelBase
     private void LoadStamps()
     {
         Stamps.Clear();
-        if (stampsVisible)
+        if (StampsVisible)
         {
             foreach (var stamp in SampleSchedule.CreateStamps(range.Start, range.End))
             {
@@ -98,7 +130,7 @@ public sealed partial class CalendarStampsViewModel : AppViewModelBase
 
     private void LoadLabels()
     {
-        DayLabels = labelsVisible ? SampleHolidays.GetLabels(range.Start, range.End) : null;
+        DayLabels = LabelsVisible ? SampleHolidays.GetLabels(range.Start, range.End) : null;
     }
 
     private void AddStamp(CalendarDayEventArgs e)
@@ -107,7 +139,7 @@ public sealed partial class CalendarStampsViewModel : AppViewModelBase
         var glyph = Glyphs[count % Glyphs.Length];
         var position = (count % 3) switch { 0 => CalendarStampPosition.BottomRight, 1 => CalendarStampPosition.BottomLeft, _ => CalendarStampPosition.Center };
         Stamps.Add(new CalendarStamp { Date = e.Date, Glyph = glyph, Position = position, FontSize = 20 });
-        Status = $"Added {glyph} to {e.Date:MM/dd}";
+        Status = $"{e.Date:MM/dd}  + {glyph}";
     }
 
     private void RemoveStamps(CalendarDayEventArgs e)
@@ -117,6 +149,6 @@ public sealed partial class CalendarStampsViewModel : AppViewModelBase
             Stamps.Remove(stamp);
         }
 
-        Status = $"Removed the stamps of {e.Date:MM/dd}";
+        Status = $"{e.Date:MM/dd}  cleared";
     }
 }

@@ -8,11 +8,11 @@ public sealed partial class CalendarBookingViewModel : AppViewModelBase
 
     private const int BookableMonths = 3;
 
-    private const string StayGuide = "Tap the check-in date, then the check-out date. 🈵 days are sold out.";
-
-    private const string DayUseGuide = "Tap the date. Tapping it again keeps it because a booking needs a date.";
-
     private static readonly DateOnly Today = DateOnly.FromDateTime(DateTime.Today);
+
+    private static readonly CalendarDayAppearance SoldOutAppearance = new() { Background = Color.FromArgb("#FFE0E0") };
+
+    private static readonly CalendarDayAppearance HighRateAppearance = new() { BorderColor = Color.FromArgb("#FFB300"), BorderWidth = 2 };
 
     private bool stay = true;
 
@@ -22,6 +22,15 @@ public sealed partial class CalendarBookingViewModel : AppViewModelBase
     private DateOnly? lastStart;
 
     private bool awaitingCheckOut;
+
+    [ObservableProperty]
+    public partial bool IsSettingOpen { get; set; }
+
+    [ObservableProperty]
+    public partial string PlanButtonText { get; set; } = "Stay";
+
+    [ObservableProperty]
+    public partial string LimitButtonText { get; set; } = "Limit on";
 
     [ObservableProperty]
     public partial DateOnly DisplayDate { get; set; } = Today;
@@ -37,6 +46,9 @@ public sealed partial class CalendarBookingViewModel : AppViewModelBase
 
     [ObservableProperty]
     public partial IReadOnlyList<CalendarStamp> Stamps { get; set; } = [];
+
+    [ObservableProperty]
+    public partial IReadOnlyDictionary<DateOnly, CalendarDayAppearance>? DayAppearances { get; set; }
 
     [ObservableProperty]
     public partial IReadOnlyList<DateOnly> Holidays { get; set; } = [];
@@ -66,11 +78,15 @@ public sealed partial class CalendarBookingViewModel : AppViewModelBase
     public partial string PriceText { get; set; } = string.Empty;
 
     [ObservableProperty]
-    public partial string Status { get; set; } = StayGuide;
+    public partial string Status { get; set; } = String.Empty;
 
     public IObserveCommand DisplayDateChangedCommand { get; }
 
     public IObserveCommand DayTappedCommand { get; }
+
+    public IObserveCommand TogglePlanCommand { get; }
+
+    public IObserveCommand ToggleLimitCommand { get; }
 
     //--------------------------------------------------------------------------------
     // Constructor
@@ -80,6 +96,8 @@ public sealed partial class CalendarBookingViewModel : AppViewModelBase
     {
         DisplayDateChangedCommand = MakeDelegateCommand<CalendarDisplayDateChangedEventArgs>(CommandMode.Simple, Load);
         DayTappedCommand = MakeDelegateCommand<CalendarDayEventArgs>(OnDayTapped);
+        TogglePlanCommand = MakeDelegateCommand(TogglePlan);
+        ToggleLimitCommand = MakeDelegateCommand(ToggleLimit);
 
         // The view writes the selection back through the TwoWay bindings
         SubscribeSelectedDate(_ => UpdateSummary());
@@ -103,37 +121,56 @@ public sealed partial class CalendarBookingViewModel : AppViewModelBase
     // Navigation
     //--------------------------------------------------------------------------------
 
-    protected override Task OnNotifyBackAsync() => Navigator.ForwardAsync(ViewId.CalendarMenu);
+    protected override Task OnNotifyBackAsync()
+    {
+        if (IsSettingOpen)
+        {
+            IsSettingOpen = false;
+            return Task.CompletedTask;
+        }
+
+        return Navigator.ForwardAsync(ViewId.CalendarMenu);
+    }
 
     protected override Task OnNotifyFunction1() => OnNotifyBackAsync();
 
-    // Stay (DateRange) or day use (SingleDate)
     protected override Task OnNotifyFunction2()
     {
-        stay = !stay;
-        ClearSelection();
-        SelectionMode = stay ? CalendarSelectionMode.DateRange : CalendarSelectionMode.SingleDate;
-        UpdateSummary();
-        Status = stay ? StayGuide : DayUseGuide;
+        IsSettingOpen = !IsSettingOpen;
         return Task.CompletedTask;
     }
 
+    //--------------------------------------------------------------------------------
+    // Setting
+    //--------------------------------------------------------------------------------
+
+    // Stay (DateRange) or day use (SingleDate)
+    private void TogglePlan()
+    {
+        stay = !stay;
+        PlanButtonText = stay ? "Stay" : "Day use";
+        ClearSelection();
+        SelectionMode = stay ? CalendarSelectionMode.DateRange : CalendarSelectionMode.SingleDate;
+        UpdateSummary();
+        Status = String.Empty;
+    }
+
     // Limit of the stay length
-    protected override Task OnNotifyFunction3()
+    private void ToggleLimit()
     {
         limited = !limited;
+        LimitButtonText = limited ? "Limit on" : "Limit off";
         MaxSelectableDays = limited ? MaxNights + 1 : 0;
         ClearSelection();
         UpdateSummary();
-        Status = limited ? $"Stays are limited to {MaxNights} nights." : "The stay length is not limited.";
-        return Task.CompletedTask;
+        Status = String.Empty;
     }
 
     protected override Task OnNotifyFunction4()
     {
         ClearSelection();
         UpdateSummary();
-        Status = "Selection cleared.";
+        Status = "Cleared";
         return Task.CompletedTask;
     }
 
@@ -148,7 +185,26 @@ public sealed partial class CalendarBookingViewModel : AppViewModelBase
         var end = e.LastDate > MaxDate ? MaxDate.Value : e.LastDate;
         SoldOutDates = start <= end ? SampleBooking.GetSoldOutDates(start, end) : [];
         Stamps = SoldOutDates.Select(static x => new CalendarStamp { Date = x, Glyph = "🈵", Position = CalendarStampPosition.BottomRight, FontSize = 14 }).ToArray();
+        DayAppearances = start <= end ? CreateAppearances(start, end) : null;
         Holidays = SampleHolidays.GetHolidays(e.FirstDate, e.LastDate);
+    }
+
+    private static Dictionary<DateOnly, CalendarDayAppearance> CreateAppearances(DateOnly start, DateOnly end)
+    {
+        var appearances = new Dictionary<DateOnly, CalendarDayAppearance>();
+        for (var date = start; date <= end; date = date.AddDays(1))
+        {
+            if (SampleBooking.IsSoldOut(date))
+            {
+                appearances[date] = SoldOutAppearance;
+            }
+            else if (SampleBooking.IsHighRate(date))
+            {
+                appearances[date] = HighRateAppearance;
+            }
+        }
+
+        return appearances;
     }
 
     // Raised after the view updated the selection
@@ -156,28 +212,28 @@ public sealed partial class CalendarBookingViewModel : AppViewModelBase
     {
         if (!stay)
         {
-            Status = $"Day use on {Format(e.Date)}.";
+            Status = $"Day use {Format(e.Date)}";
             return;
         }
 
         if (SelectedEndDate is not null)
         {
-            Status = $"{Nights()} nights. Tap a date to start another stay.";
+            Status = $"{Nights()} nights";
         }
         else if (awaitingCheckOut && (e.Date == lastStart))
         {
-            Status = $"Tap a check-out date after {Format(e.Date)}.";
+            Status = $"Check-out after {Format(e.Date)}";
         }
         else if (awaitingCheckOut)
         {
             // The view started over at the tapped date because the stay was too long or crossed a sold-out day
             Status = limited
-                ? $"That stay is longer than {MaxNights} nights or crosses a sold-out day. Check-in moved to {Format(e.Date)}."
-                : $"That stay crosses a sold-out day. Check-in moved to {Format(e.Date)}.";
+                ? $"Too long  Check-in {Format(e.Date)}"
+                : $"Sold out  Check-in {Format(e.Date)}";
         }
         else
         {
-            Status = $"Check-in {Format(e.Date)}. Tap the check-out date.";
+            Status = $"Check-in {Format(e.Date)}";
         }
 
         lastStart = SelectedStartDate;
@@ -203,7 +259,7 @@ public sealed partial class CalendarBookingViewModel : AppViewModelBase
             return;
         }
 
-        PlanText = limited ? $"Stay  up to {MaxNights} nights" : "Stay";
+        PlanText = limited ? $"Stay  up to {MaxNights} nights" : "Stay  no limit";
         DatesText = $"Check-in  {(SelectedStartDate is { } checkIn ? Format(checkIn) : "-")}    Check-out  {(SelectedEndDate is { } checkOut ? Format(checkOut) : "-")}";
         PriceText = (SelectedStartDate is { } start) && (SelectedEndDate is { } end)
             ? $"{Nights()} nights  ¥{SampleBooking.GetStayTotal(start, end):N0}"

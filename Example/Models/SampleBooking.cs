@@ -27,9 +27,12 @@ public static class SampleBooking
     public static bool IsSoldOut(DateOnly date) =>
         (date.DayNumber % 9 == 4) || (date.DayNumber % 13 == 6);
 
+    public static bool IsHighRate(DateOnly night) =>
+        night.DayOfWeek is DayOfWeek.Friday or DayOfWeek.Saturday;
+
     // Rate of the night that starts on the date
     public static int GetRate(DateOnly night) =>
-        night.DayOfWeek is DayOfWeek.Friday or DayOfWeek.Saturday ? WeekendRate : WeekdayRate;
+        IsHighRate(night) ? WeekendRate : WeekdayRate;
 
     // Total of the nights from the check-in to the night before the check-out
     public static int GetStayTotal(DateOnly checkIn, DateOnly checkOut)

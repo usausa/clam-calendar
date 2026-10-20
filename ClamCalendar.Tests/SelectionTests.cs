@@ -83,6 +83,48 @@ public sealed class SelectionTests
     }
 
     [Fact]
+    public void WeekStartAndSelectWeekFollowTheFirstDayOfWeek()
+    {
+        // Act & Assert
+        Assert.Equal(new DateOnly(2026, 9, 7), CalendarSelectionLogic.WeekStart(Day9, DayOfWeek.Monday));
+        Assert.Equal(new DateOnly(2026, 9, 6), CalendarSelectionLogic.WeekStart(Day9, DayOfWeek.Sunday));
+        Assert.Equal(new DateOnly(2026, 9, 7), CalendarSelectionLogic.WeekStart(new DateOnly(2026, 9, 7), DayOfWeek.Monday));
+        Assert.Equal(
+            [new DateOnly(2026, 9, 7), new DateOnly(2026, 9, 8), Day9, new DateOnly(2026, 9, 10), new DateOnly(2026, 9, 11), new DateOnly(2026, 9, 12), new DateOnly(2026, 9, 13)],
+            CalendarSelectionLogic.SelectWeek(Day9, DayOfWeek.Monday, static _ => false));
+        Assert.Equal(
+            [new DateOnly(2026, 9, 8), Day9, new DateOnly(2026, 9, 10), new DateOnly(2026, 9, 11), new DateOnly(2026, 9, 12)],
+            CalendarSelectionLogic.SelectWeek(Day9, DayOfWeek.Monday, static date => date is { Day: 7 } or { Day: 13 }));
+    }
+
+    [Fact]
+    public void ViewSelectsTheWholeWeekOfTheTappedDay()
+    {
+        // Arrange
+        using var view = new ClamCalendarView();
+        view.SelectionMode = CalendarSelectionMode.Week;
+
+        // Act & Assert
+        Assert.True(view.SelectDay(Day9));
+        Assert.Equal(7, view.SelectedDates.Count);
+        Assert.Equal(new DateOnly(2026, 9, 7), view.SelectedStartDate);
+        Assert.Equal(new DateOnly(2026, 9, 13), view.SelectedEndDate);
+        Assert.True(view.IsDateSelected(new DateOnly(2026, 9, 7)));
+        Assert.True(view.IsDateInSelectedRange(Day9));
+        Assert.False(view.IsDateSelected(new DateOnly(2026, 9, 14)));
+        Assert.False(view.SelectDay(new DateOnly(2026, 9, 11)));
+
+        // Arrange
+        view.DisabledDates = new[] { new DateOnly(2026, 9, 7) };
+
+        // Act & Assert
+        Assert.True(view.SelectDay(Day9));
+        Assert.Equal(6, view.SelectedDates.Count);
+        Assert.Equal(new DateOnly(2026, 9, 8), view.SelectedStartDate);
+        Assert.False(view.IsDateSelected(new DateOnly(2026, 9, 7)));
+    }
+
+    [Fact]
     public void ViewAppliesTapsToTheBoundProperties()
     {
         // Arrange

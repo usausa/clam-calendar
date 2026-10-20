@@ -34,7 +34,7 @@ public sealed class CalendarMonthBuilder
         return new CalendarDateRange(start, start.AddDays((GetWeekCount(start, first) * DaysPerWeek) - 1));
     }
 
-    public CalendarMonth Build(int year, int month, DateOnly today, IEnumerable<CalendarEvent>? events = null, IEnumerable<CalendarStamp>? stamps = null, IEnumerable<DateOnly>? holidays = null, IReadOnlyDictionary<DateOnly, string>? labels = null)
+    public CalendarMonth Build(int year, int month, DateOnly today, IEnumerable<CalendarEvent>? events = null, IEnumerable<CalendarStamp>? stamps = null, IEnumerable<DateOnly>? holidays = null, IReadOnlyDictionary<DateOnly, string>? labels = null, IReadOnlyDictionary<DateOnly, CalendarDayAppearance>? appearances = null)
     {
         var first = new DateOnly(year, month, 1);
         var last = first.AddDays(DateTime.DaysInMonth(year, month) - 1);
@@ -63,6 +63,7 @@ public sealed class CalendarMonthBuilder
                     Kind = DetermineKind(date, holidaySet),
                     Stamps = (stampLookup is not null) && stampLookup.TryGetValue(date, out var dayStamps) ? dayStamps : [],
                     Label = inside && (labels is not null) && labels.TryGetValue(date, out var label) ? label : null,
+                    Appearance = inside && (appearances is not null) && appearances.TryGetValue(date, out var appearance) ? appearance : null,
                     Events = placement.Events[d],
                     HiddenEventCount = placement.HiddenCounts[d]
                 };

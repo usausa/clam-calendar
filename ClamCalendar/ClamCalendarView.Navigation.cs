@@ -58,9 +58,9 @@ public partial class ClamCalendarView
         set => SetValue(DisplayDateChangedCommandProperty, value);
     }
 
-    private float SlideOffset => (float)(slideDirection * SlideDistance * (1 - slideProgress));
+    public double SlideOffset => slideDirection * SlideDistance * (1 - slideProgress);
 
-    private float SlideOpacity => slideDirection == 0 ? 1 : (float)(0.4 + (0.6 * slideProgress));
+    public double SlideOpacity => slideDirection == 0 ? 1 : 0.4 + (0.6 * slideProgress);
 
     // Shows the month of today, or the nearest month inside MinDate and MaxDate
     public void GoToToday()
@@ -144,12 +144,14 @@ public partial class ClamCalendarView
 
         slideDirection = direction;
         slideProgress = 0;
+        NotifySlideChanged();
         this.Animate(SlideAnimationName, OnSlideFrame, 16, SlideLength, Easing.CubicOut, OnSlideFinished);
     }
 
     private void OnSlideFrame(double progress)
     {
         slideProgress = progress;
+        NotifySlideChanged();
         InvalidateSurface();
     }
 
@@ -159,6 +161,7 @@ public partial class ClamCalendarView
         slideProgress = 1;
         if (!disposed)
         {
+            NotifySlideChanged();
             InvalidateSurface();
         }
     }
@@ -170,6 +173,13 @@ public partial class ClamCalendarView
             slideDirection = 0;
             slideProgress = 1;
             this.AbortAnimation(SlideAnimationName);
+            NotifySlideChanged();
         }
+    }
+
+    private void NotifySlideChanged()
+    {
+        OnPropertyChanged(nameof(SlideOffset));
+        OnPropertyChanged(nameof(SlideOpacity));
     }
 }

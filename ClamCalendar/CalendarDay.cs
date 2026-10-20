@@ -15,6 +15,8 @@ public sealed class CalendarDay
     // Small text drawn next to the date number, for example the holiday name
     public string? Label { get; init; }
 
+    public CalendarDayAppearance? Appearance { get; init; }
+
     // Every event that covers the day, including the ones hidden by MaxVisibleSlots
     public IReadOnlyList<CalendarEvent> Events { get; init; } = [];
 

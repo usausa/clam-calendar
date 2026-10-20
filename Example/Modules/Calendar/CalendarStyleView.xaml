@@ -4,58 +4,195 @@
              xmlns:s="http://smart/maui"
              xmlns:shell="clr-namespace:Example.Shell"
              xmlns:module="clr-namespace:Example.Modules.Calendar"
-             xmlns:clam="clr-namespace:ClamCalendar;assembly=ClamCalendar"
+             xmlns:clam="clr-namespace:ClamCalendar;assembly=ClamCalendar" xmlns:cmc="clr-namespace:MauiComponents.Controls;assembly=MauiComponents.Controls"
              x:Class="Example.Modules.Calendar.CalendarStyleView"
              x:DataType="{x:Type module:CalendarStyleViewModel}"
              s:BindingContextResolver.Type="{x:Type module:CalendarStyleViewModel}"
              shell:ShellProperty.Title="Style"
              shell:ShellProperty.Function1Text="Back"
-             shell:ShellProperty.Function2Text="Theme"
-             shell:ShellProperty.Function3Text="Names"
-             shell:ShellProperty.Function4Text="Header"
+             shell:ShellProperty.Function2Text="Setting"
              shell:ShellProperty.Function1Enabled="True"
-             shell:ShellProperty.Function2Enabled="True"
-             shell:ShellProperty.Function3Enabled="True"
-             shell:ShellProperty.Function4Enabled="True">
+             shell:ShellProperty.Function2Enabled="True">
 
-    <Grid Style="{StaticResource FillGrid}"
-          RowDefinitions="Auto,*,Auto">
+    <Grid>
+        <Grid Style="{StaticResource FillGrid}"
+              RowDefinitions="Auto,*,Auto">
+            <!-- Application side header used when the built-in header is hidden -->
+            <Grid Grid.Row="0"
+                  Style="{StaticResource SubMenuGrid}"
+                  ColumnDefinitions="Auto,*,Auto"
+                  IsVisible="{Binding AppHeaderVisible}">
+                <Button Grid.Column="0"
+                        Style="{StaticResource SubMenuButton}"
+                        WidthRequest="64"
+                        Command="{Binding PrevCommand}"
+                        Text="&lt;" />
+                <Label Grid.Column="1"
+                       Style="{StaticResource TitleLabel}"
+                       HorizontalTextAlignment="Center" VerticalTextAlignment="Center"
+                       Text="{Binding DisplayDate, StringFormat='{0:yyyy / MM}'}" />
+                <Button Grid.Column="2"
+                        Style="{StaticResource SubMenuButton}"
+                        WidthRequest="64"
+                        Command="{Binding NextCommand}"
+                        Text="&gt;" />
+            </Grid>
 
-        <!-- Application side header used when the built-in header is hidden -->
-        <Grid Grid.Row="0"
-              Style="{StaticResource SubMenuGrid}"
-              ColumnDefinitions="Auto,*,Auto"
-              IsVisible="{Binding AppHeaderVisible}">
-            <Button Grid.Column="0"
-                    Style="{StaticResource SubMenuButton}"
-                    WidthRequest="64"
-                    Command="{Binding PrevCommand}"
-                    Text="&lt;" />
-            <Label Grid.Column="1"
-                   Style="{StaticResource TitleLabel}"
-                   HorizontalTextAlignment="Center" VerticalTextAlignment="Center"
-                   Text="{Binding DisplayDate, StringFormat='{0:yyyy / MM}'}" />
-            <Button Grid.Column="2"
-                    Style="{StaticResource SubMenuButton}"
-                    WidthRequest="64"
-                    Command="{Binding NextCommand}"
-                    Text="&gt;" />
+            <clam:ClamCalendarView Grid.Row="1"
+                                   CalendarStyle="{Binding CalendarStyle}"
+                                   DisplayDate="{Binding DisplayDate, Mode=TwoWay}"
+                                   DisplayDateChangedCommand="{Binding DisplayDateChangedCommand}"
+                                   Events="{Binding Events}"
+                                   HeaderVisible="{Binding HeaderVisible}"
+                                   Holidays="{Binding Holidays}"
+                                   SelectedDate="{Binding SelectedDate, Mode=TwoWay}"
+                                   SelectionMode="SingleDate"
+                                   TodayButtonVisible="{Binding TodayButtonVisible}"
+                                   WeekNumberVisible="{Binding WeekNumberVisible}"
+                                   WeekdayNameFormat="{Binding WeekdayNameFormat}" />
+
+            <Label Grid.Row="2"
+                   Style="{StaticResource StatusLabel}"
+                   Text="{Binding Status}" />
         </Grid>
 
-        <clam:ClamCalendarView Grid.Row="1"
-                               CalendarStyle="{Binding CalendarStyle}"
-                               DisplayDate="{Binding DisplayDate, Mode=TwoWay}"
-                               DisplayDateChangedCommand="{Binding DisplayDateChangedCommand}"
-                               Events="{Binding Events}"
-                               HeaderVisible="{Binding HeaderVisible}"
-                               Holidays="{Binding Holidays}"
-                               SelectedDate="{Binding SelectedDate, Mode=TwoWay}"
-                               SelectionMode="SingleDate"
-                               WeekdayNameFormat="{Binding WeekdayNameFormat}" />
+        <cmc:BottomSheetView Style="{StaticResource SettingSheet}"
+                             IsOpen="{Binding IsSettingOpen}">
+            <cmc:BottomSheetView.SheetTemplate>
+                <DataTemplate x:DataType="{x:Type module:CalendarStyleViewModel}">
+                    <VerticalStackLayout Style="{StaticResource SheetStack}">
+                        <Label Style="{StaticResource SheetTitle}"
+                               Text="Theme" />
+                        <Grid Style="{StaticResource SheetGrid}"
+                              ColumnDefinitions="*,*,*,*">
+                            <Button Grid.Column="0"
+                                    Style="{StaticResource SheetButton}"
+                                    Command="{Binding SelectThemeCommand}"
+                                    CommandParameter="Default"
+                                    Text="Default">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button"
+                                                 Value="Default"
+                                                 Binding="{Binding ThemeName}">
+                                        <Setter Property="BackgroundColor" Value="{StaticResource BlueDefault}" />
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Button Grid.Column="1"
+                                    Style="{StaticResource SheetButton}"
+                                    Command="{Binding SelectThemeCommand}"
+                                    CommandParameter="Dark"
+                                    Text="Dark">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button"
+                                                 Value="Dark"
+                                                 Binding="{Binding ThemeName}">
+                                        <Setter Property="BackgroundColor" Value="{StaticResource BlueDefault}" />
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Button Grid.Column="2"
+                                    Style="{StaticResource SheetButton}"
+                                    Command="{Binding SelectThemeCommand}"
+                                    CommandParameter="Accent"
+                                    Text="Accent">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button"
+                                                 Value="Accent"
+                                                 Binding="{Binding ThemeName}">
+                                        <Setter Property="BackgroundColor" Value="{StaticResource BlueDefault}" />
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Button Grid.Column="3"
+                                    Style="{StaticResource SheetButton}"
+                                    Command="{Binding SelectThemeCommand}"
+                                    CommandParameter="Minimal"
+                                    Text="Minimal">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button"
+                                                 Value="Minimal"
+                                                 Binding="{Binding ThemeName}">
+                                        <Setter Property="BackgroundColor" Value="{StaticResource BlueDefault}" />
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                        </Grid>
 
-        <Label Grid.Row="2"
-               Style="{StaticResource StatusLabel}"
-               Text="{Binding Status}" />
+                        <Label Style="{StaticResource SheetTitle}"
+                               Text="Weekday names" />
+                        <Grid Style="{StaticResource SheetGrid}"
+                              ColumnDefinitions="*,*,*">
+                            <Button Grid.Column="0"
+                                    Style="{StaticResource SheetButton}"
+                                    Command="{Binding SelectNameFormatCommand}"
+                                    CommandParameter="{x:Static clam:CalendarWeekdayNameFormat.Initial}"
+                                    Text="Initial">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button"
+                                                 Value="{x:Static clam:CalendarWeekdayNameFormat.Initial}"
+                                                 Binding="{Binding WeekdayNameFormat}">
+                                        <Setter Property="BackgroundColor" Value="{StaticResource BlueDefault}" />
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Button Grid.Column="1"
+                                    Style="{StaticResource SheetButton}"
+                                    Command="{Binding SelectNameFormatCommand}"
+                                    CommandParameter="{x:Static clam:CalendarWeekdayNameFormat.Abbreviated}"
+                                    Text="Abbreviated">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button"
+                                                 Value="{x:Static clam:CalendarWeekdayNameFormat.Abbreviated}"
+                                                 Binding="{Binding WeekdayNameFormat}">
+                                        <Setter Property="BackgroundColor" Value="{StaticResource BlueDefault}" />
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Button Grid.Column="2"
+                                    Style="{StaticResource SheetButton}"
+                                    Command="{Binding SelectNameFormatCommand}"
+                                    CommandParameter="{x:Static clam:CalendarWeekdayNameFormat.Full}"
+                                    Text="Full">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button"
+                                                 Value="{x:Static clam:CalendarWeekdayNameFormat.Full}"
+                                                 Binding="{Binding WeekdayNameFormat}">
+                                        <Setter Property="BackgroundColor" Value="{StaticResource BlueDefault}" />
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                        </Grid>
+
+                        <Label Style="{StaticResource SheetTitle}"
+                               Text="Header" />
+                        <Grid Style="{StaticResource SheetGrid}"
+                              ColumnDefinitions="*,*">
+                            <Button Grid.Column="0"
+                                    Style="{StaticResource SheetButton}"
+                                    Command="{Binding ToggleHeaderCommand}"
+                                    Text="{Binding HeaderText}" />
+                            <Grid Grid.Column="1"
+                                  ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0"
+                                       Style="{StaticResource SheetSwitchLabel}"
+                                       Text="Today" />
+                                <Switch Grid.Column="1"
+                                        Style="{StaticResource SheetSwitch}"
+                                        IsToggled="{Binding TodayButtonVisible}" />
+                            </Grid>
+                        </Grid>
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </cmc:BottomSheetView.SheetTemplate>
+        </cmc:BottomSheetView>
     </Grid>
 
 </ContentView>

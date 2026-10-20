@@ -6,6 +6,9 @@ public sealed partial class CalendarBasicViewModel : AppViewModelBase
     private static readonly CultureInfo English = CultureInfo.GetCultureInfo("en-US");
 
     [ObservableProperty]
+    public partial bool IsSettingOpen { get; set; }
+
+    [ObservableProperty]
     public partial DateOnly DisplayDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
 
     [ObservableProperty]
@@ -16,6 +19,9 @@ public sealed partial class CalendarBasicViewModel : AppViewModelBase
 
     [ObservableProperty]
     public partial IReadOnlyList<DateOnly> Holidays { get; set; } = [];
+
+    [ObservableProperty]
+    public partial IReadOnlyDictionary<DateOnly, CalendarDayAppearance>? DayAppearances { get; set; }
 
     [ObservableProperty]
     public partial CalendarSelectionMode SelectionMode { get; set; }
@@ -56,10 +62,16 @@ public sealed partial class CalendarBasicViewModel : AppViewModelBase
     public partial bool TodayButtonVisible { get; set; } = true;
 
     [ObservableProperty]
+    public partial string StartText { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string CultureText { get; set; } = string.Empty;
+
+    [ObservableProperty]
     public partial string LimitText { get; set; } = "Limit off";
 
     [ObservableProperty]
-    public partial string Status { get; set; } = "Tap a day, long press for the date, swipe to change the month.";
+    public partial string Status { get; set; } = String.Empty;
 
     public IObserveCommand DisplayDateChangedCommand { get; }
 
@@ -73,9 +85,9 @@ public sealed partial class CalendarBasicViewModel : AppViewModelBase
 
     public IObserveCommand SelectModeCommand { get; }
 
-    public IObserveCommand ToggleFixedCommand { get; }
+    public IObserveCommand ToggleStartCommand { get; }
 
-    public IObserveCommand ToggleOutsideCommand { get; }
+    public IObserveCommand ToggleCultureCommand { get; }
 
     public IObserveCommand ToggleSlotsCommand { get; }
 
@@ -90,36 +102,47 @@ public sealed partial class CalendarBasicViewModel : AppViewModelBase
         // The view reports the visible range whenever the month changes; the events of that range are loaded here
         // The first report arrives while the navigation still holds the busy state, so the command must run while busy
         DisplayDateChangedCommand = MakeDelegateCommand<CalendarDisplayDateChangedEventArgs>(CommandMode.Simple, Load);
-        DayTappedCommand = MakeDelegateCommand<CalendarDayEventArgs>(x => Status = $"Tapped {x.Date:yyyy/MM/dd} ({x.Day.Kind}) events={x.Day.Events.Count}");
-        DayLongPressedCommand = MakeDelegateCommand<CalendarDayEventArgs>(x => Status = $"Long pressed {x.Date:yyyy/MM/dd}");
-        EventTappedCommand = MakeDelegateCommand<CalendarEventEventArgs>(x => Status = $"Event {x.Event.Title} ({x.Event.StartDate:MM/dd} - {x.Event.EndDate:MM/dd}) on {x.Day.Date:MM/dd}");
-        OverflowTappedCommand = MakeDelegateCommand<CalendarOverflowEventArgs>(x => Status = $"{x.Day.Date:MM/dd}: {x.HiddenCount} hidden of {String.Join(", ", x.Events.Select(static e => e.Title))}");
+        DayTappedCommand = MakeDelegateCommand<CalendarDayEventArgs>(x => Status = $"{x.Date:MM/dd} {x.Day.Kind}  {x.Day.Events.Count} events");
+        DayLongPressedCommand = MakeDelegateCommand<CalendarDayEventArgs>(x => Status = $"Hold {x.Date:MM/dd}");
+        EventTappedCommand = MakeDelegateCommand<CalendarEventEventArgs>(x => Status = $"{x.Day.Date:MM/dd} {x.Event.Title}");
+        OverflowTappedCommand = MakeDelegateCommand<CalendarOverflowEventArgs>(x => Status = $"{x.Day.Date:MM/dd} +{x.HiddenCount} hidden");
         SelectModeCommand = MakeDelegateCommand<CalendarSelectionMode>(SelectMode);
-        ToggleFixedCommand = MakeDelegateCommand(() => FixedWeekRows = !FixedWeekRows);
-        ToggleOutsideCommand = MakeDelegateCommand(() => OutsideMonthDaysVisible = !OutsideMonthDaysVisible);
+        ToggleStartCommand = MakeDelegateCommand(() =>
+        {
+            FirstDayOfWeek = FirstDayOfWeek == DayOfWeek.Monday ? DayOfWeek.Sunday : DayOfWeek.Monday;
+            UpdateState();
+        });
+        ToggleCultureCommand = MakeDelegateCommand(() =>
+        {
+            Culture = Culture.Equals(Japanese) ? English : Japanese;
+            UpdateState();
+        });
         ToggleSlotsCommand = MakeDelegateCommand(() => MaxVisibleSlots = MaxVisibleSlots == 0 ? 2 : 0);
         ToggleLimitCommand = MakeDelegateCommand(ToggleLimit);
+
+        UpdateState();
     }
 
     //--------------------------------------------------------------------------------
     // Navigation
     //--------------------------------------------------------------------------------
 
-    protected override Task OnNotifyBackAsync() => Navigator.ForwardAsync(ViewId.CalendarMenu);
+    protected override Task OnNotifyBackAsync()
+    {
+        if (IsSettingOpen)
+        {
+            IsSettingOpen = false;
+            return Task.CompletedTask;
+        }
+
+        return Navigator.ForwardAsync(ViewId.CalendarMenu);
+    }
 
     protected override Task OnNotifyFunction1() => OnNotifyBackAsync();
 
     protected override Task OnNotifyFunction2()
     {
-        FirstDayOfWeek = FirstDayOfWeek == DayOfWeek.Monday ? DayOfWeek.Sunday : DayOfWeek.Monday;
-        Status = $"First day of week: {FirstDayOfWeek}";
-        return Task.CompletedTask;
-    }
-
-    protected override Task OnNotifyFunction3()
-    {
-        Culture = Culture.Equals(Japanese) ? English : Japanese;
-        Status = $"Culture: {Culture.Name}";
+        IsSettingOpen = !IsSettingOpen;
         return Task.CompletedTask;
     }
 
@@ -139,14 +162,22 @@ public sealed partial class CalendarBasicViewModel : AppViewModelBase
         Events = SampleSchedule.CreateEvents(e.FirstDate, e.LastDate);
         Stamps = SampleSchedule.CreateStamps(e.FirstDate, e.LastDate);
         Holidays = SampleHolidays.GetHolidays(e.FirstDate, e.LastDate);
-        Status = $"{e.DisplayDate:yyyy/MM}: {e.FirstDate:MM/dd} - {e.LastDate:MM/dd}, {Events.Count} events";
+        DayAppearances = SampleSchedule.CreateDayAppearances(e.FirstDate, e.LastDate);
+        Status = $"{e.DisplayDate:yyyy/MM}  {Events.Count} events";
     }
 
     private void SelectMode(CalendarSelectionMode mode)
     {
         SelectionMode = mode;
         ClearSelection();
-        Status = $"Selection mode: {mode}";
+        UpdateState();
+        IsSettingOpen = false;
+    }
+
+    private void UpdateState()
+    {
+        StartText = FirstDayOfWeek == DayOfWeek.Monday ? "Start Mon" : "Start Sun";
+        CultureText = Culture.Name;
     }
 
     private void ClearSelection()
@@ -166,7 +197,7 @@ public sealed partial class CalendarBasicViewModel : AppViewModelBase
             MinDate = first;
             MaxDate = first.AddMonths(2).AddDays(-1);
             LimitText = "Limit on";
-            Status = $"Limited to {MinDate:MM/dd} - {MaxDate:MM/dd}";
+            Status = $"Limit {MinDate:MM/dd} - {MaxDate:MM/dd}";
         }
         else
         {

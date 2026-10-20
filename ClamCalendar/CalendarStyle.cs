@@ -15,6 +15,8 @@ public sealed record CalendarStyle
 
     public double DayLabelFontSize { get; set; } = 9;
 
+    public double WeekNumberFontSize { get; set; } = 9;
+
     public double MonthIndicatorFontSize { get; set; } = 120;
 
     public double HeaderHeight { get; set; } = 48;
@@ -31,15 +33,25 @@ public sealed record CalendarStyle
 
     public double DateNumberMargin { get; set; } = 4;
 
+    public double DateNumberMarkWidth { get; set; } = 2;
+
     public double StampMarginEdge { get; set; } = 2;
 
     public double EventCornerRadius { get; set; } = 4;
 
     public double EventPadding { get; set; } = 4;
 
+    public double EventDotSize { get; set; } = 6;
+
+    public double EventDotSpacing { get; set; } = 3;
+
     public double NavigationButtonWidth { get; set; } = 44;
 
     public double TodayButtonWidth { get; set; } = 64;
+
+    public double GridLineWidth { get; set; } = 0.5;
+
+    public double WeekNumberWidth { get; set; } = 24;
 
     public Color Background { get; set; } = Colors.White;
 
@@ -77,6 +89,10 @@ public sealed record CalendarStyle
 
     public Color OverflowTextColor { get; set; } = Color.FromArgb("#757575");
 
+    public Color StampColor { get; set; } = Colors.Black;
+
+    public Color WeekNumberTextColor { get; set; } = Color.FromArgb("#757575");
+
     public Color HeaderBackground { get; set; } = Colors.White;
 
     public Color HeaderTextColor { get; set; } = Colors.Black;
@@ -93,6 +109,22 @@ public sealed record CalendarStyle
 
     public Color MonthIndicatorColor { get; set; } = Color.FromArgb("#10000000");
 
+    public CalendarMarkStyle TodayMarkStyle { get; set; } = CalendarMarkStyle.Fill;
+
+    public CalendarMarkStyle SelectedMarkStyle { get; set; } = CalendarMarkStyle.Fill;
+
+    public bool TodayMarkOnSelected { get; set; }
+
+    public CalendarDateNumberShape DateNumberShape { get; set; } = CalendarDateNumberShape.RoundedSquare;
+
+    public bool DateNumberBold { get; set; } = true;
+
+    public CalendarGridLineMode GridLineMode { get; set; } = CalendarGridLineMode.All;
+
+    public CalendarEventDisplayMode EventDisplayMode { get; set; } = CalendarEventDisplayMode.Bars;
+
+    public int MaxVisibleDots { get; set; } = 4;
+
     internal static bool ValidateValue(object? value)
     {
         ArgumentNullException.ThrowIfNull(value, nameof(CalendarStyle));
@@ -102,19 +134,24 @@ public sealed record CalendarStyle
 
     internal void Validate()
     {
-        if (!IsPositive(HeaderFontSize) || !IsPositive(WeekdayHeaderFontSize) || !IsPositive(DateNumberFontSize) || !IsPositive(EventFontSize) || !IsPositive(DayLabelFontSize) || !IsPositive(MonthIndicatorFontSize))
+        if (!IsPositive(HeaderFontSize) || !IsPositive(WeekdayHeaderFontSize) || !IsPositive(DateNumberFontSize) || !IsPositive(EventFontSize) || !IsPositive(DayLabelFontSize) || !IsPositive(WeekNumberFontSize) || !IsPositive(MonthIndicatorFontSize))
         {
             throw new ArgumentException("Font sizes must be positive finite values.");
         }
 
-        if (!IsPositive(HeaderHeight) || !IsPositive(WeekdayHeaderHeight) || !IsPositive(DateRowHeight) || !IsPositive(SlotRowHeight) || !IsPositive(EventRowHeight) || !IsPositive(DateNumberSize) || !IsPositive(NavigationButtonWidth) || !IsPositive(TodayButtonWidth))
+        if (!IsPositive(HeaderHeight) || !IsPositive(WeekdayHeaderHeight) || !IsPositive(DateRowHeight) || !IsPositive(SlotRowHeight) || !IsPositive(EventRowHeight) || !IsPositive(DateNumberSize) || !IsPositive(DateNumberMarkWidth) || !IsPositive(GridLineWidth) || !IsPositive(EventDotSize) || !IsPositive(WeekNumberWidth) || !IsPositive(NavigationButtonWidth) || !IsPositive(TodayButtonWidth))
         {
             throw new ArgumentException("Heights and widths must be positive finite values.");
         }
 
-        if (!IsNonNegative(DateNumberMargin) || !IsNonNegative(StampMarginEdge) || !IsNonNegative(EventCornerRadius) || !IsNonNegative(EventPadding))
+        if (!IsNonNegative(DateNumberMargin) || !IsNonNegative(StampMarginEdge) || !IsNonNegative(EventCornerRadius) || !IsNonNegative(EventPadding) || !IsNonNegative(EventDotSpacing))
         {
             throw new ArgumentException("Margins and paddings must be finite values of zero or more.");
+        }
+
+        if (MaxVisibleDots < 0)
+        {
+            throw new ArgumentException("MaxVisibleDots must be zero or more.");
         }
     }
 

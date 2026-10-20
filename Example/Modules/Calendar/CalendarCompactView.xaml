@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:s="http://smart/maui"
+             xmlns:shell="clr-namespace:Example.Shell"
+             xmlns:module="clr-namespace:Example.Modules.Calendar"
+             xmlns:clam="clr-namespace:ClamCalendar;assembly=ClamCalendar" xmlns:cmc="clr-namespace:MauiComponents.Controls;assembly=MauiComponents.Controls"
+             x:Class="Example.Modules.Calendar.CalendarCompactView"
+             x:DataType="{x:Type module:CalendarCompactViewModel}"
+             s:BindingContextResolver.Type="{x:Type module:CalendarCompactViewModel}"
+             shell:ShellProperty.Title="Compact"
+             shell:ShellProperty.Function1Text="Back"
+             shell:ShellProperty.Function2Text="Setting"
+             shell:ShellProperty.Function1Enabled="True"
+             shell:ShellProperty.Function2Enabled="True">
+
+    <Grid>
+        <Grid Style="{StaticResource FillGrid}"
+              RowDefinitions="Auto,Auto,*">
+            <!-- A date picker: short rows, dots instead of bars and the header buttons relabelled -->
+            <Border Grid.Row="0"
+                    Margin="8" Padding="0"
+                    Stroke="#E0E0E0" StrokeThickness="1">
+                <clam:ClamCalendarView HeightRequest="320"
+                                       CalendarStyle="{StaticResource CompactCalendarStyle}"
+                                       DayAppearances="{Binding DayAppearances}"
+                                       DayTappedCommand="{Binding DayTappedCommand}"
+                                       DisplayDate="{Binding DisplayDate, Mode=TwoWay}"
+                                       DisplayDateChangedCommand="{Binding DisplayDateChangedCommand}"
+                                       Events="{Binding Events}"
+                                       FixedWeekRows="False" HeaderFormat="yyyy / M"
+                                       Holidays="{Binding Holidays}"
+                                       NavigationButtonsVisible="{Binding NavigationButtonsVisible}"
+                                       NextButtonText="›" OutsideMonthDaysVisible="False" PrevButtonText="‹"
+                                       SelectedDate="{Binding SelectedDate, Mode=TwoWay}"
+                                       SelectionMode="SingleDate"
+                                       SwipeEnabled="{Binding SwipeEnabled}"
+                                       Today="{Binding Today}"
+                                       TodayButtonText="今日" TodayButtonVisible="True"
+                                       WeekdayHeaderVisible="{Binding WeekdayHeaderVisible}" />
+            </Border>
+
+            <Label Grid.Row="1"
+                   Style="{StaticResource ValueLabel}"
+                   Text="{Binding StateText}" />
+
+            <Label Grid.Row="2" />
+
+        </Grid>
+
+        <cmc:BottomSheetView Style="{StaticResource SettingSheet}"
+                             IsOpen="{Binding IsSettingOpen}">
+            <cmc:BottomSheetView.SheetTemplate>
+                <DataTemplate x:DataType="{x:Type module:CalendarCompactViewModel}">
+                    <VerticalStackLayout Style="{StaticResource SheetStack}">
+                        <Label Style="{StaticResource SheetTitle}"
+                               Text="Parts and input" />
+                        <Grid Style="{StaticResource SheetGrid}"
+                              ColumnDefinitions="*,*,*">
+                            <Grid Grid.Column="0"
+                                  ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0"
+                                       Style="{StaticResource SheetSwitchLabel}"
+                                       Text="Weekday" />
+                                <Switch Grid.Column="1"
+                                        Style="{StaticResource SheetSwitch}"
+                                        IsToggled="{Binding WeekdayHeaderVisible}" />
+                            </Grid>
+                            <Grid Grid.Column="1"
+                                  ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0"
+                                       Style="{StaticResource SheetSwitchLabel}"
+                                       Text="Buttons" />
+                                <Switch Grid.Column="1"
+                                        Style="{StaticResource SheetSwitch}"
+                                        IsToggled="{Binding NavigationButtonsVisible}" />
+                            </Grid>
+                            <Grid Grid.Column="2"
+                                  ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0"
+                                       Style="{StaticResource SheetSwitchLabel}"
+                                       Text="Swipe" />
+                                <Switch Grid.Column="1"
+                                        Style="{StaticResource SheetSwitch}"
+                                        IsToggled="{Binding SwipeEnabled}" />
+                            </Grid>
+                        </Grid>
+                        <Grid Style="{StaticResource SheetGrid}"
+                              ColumnDefinitions="*,*">
+                            <Button Grid.Column="0"
+                                    Style="{StaticResource SheetButton}"
+                                    Command="{Binding ToggleTodayCommand}"
+                                    Text="{Binding TodayText}" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </cmc:BottomSheetView.SheetTemplate>
+        </cmc:BottomSheetView>
+    </Grid>
+
+</ContentView>
