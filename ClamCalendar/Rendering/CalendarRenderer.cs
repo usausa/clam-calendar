@@ -21,7 +21,7 @@ internal sealed class CalendarRenderer : IDisposable
     private readonly ConditionalWeakTable<CalendarEvent, string> eventTexts = [];
     private readonly Dictionary<int, string> overflowTexts = [];
     private readonly Dictionary<int, string> weekNumberTexts = [];
-    private (int Year, int Month, CultureInfo? Culture, CalendarTextFormat? Format) titleKey;
+    private (int Year, int Month, CultureInfo? Culture, CalendarTextFormat? Format, Func<CalendarMonth, string>? Formatter) titleKey;
     private string title = String.Empty;
 
     public int Measurements => fonts.Measurements;
@@ -41,11 +41,16 @@ internal sealed class CalendarRenderer : IDisposable
         fonts.Dispose();
     }
 
-    public static string FormatTitle(CalendarMonth month, CultureInfo culture, CalendarTextFormat format)
+    public static string FormatTitle(CalendarMonth month, CultureInfo culture, CalendarTextFormat format, Func<CalendarMonth, string>? formatter = null)
     {
         ArgumentNullException.ThrowIfNull(month);
         ArgumentNullException.ThrowIfNull(culture);
         ArgumentNullException.ThrowIfNull(format);
+        if (formatter is not null)
+        {
+            return formatter(month);
+        }
+
         var date = new DateTime(month.Year, month.Month, 1);
         return format.IsDefault ? date.ToString(culture.DateTimeFormat.YearMonthPattern, culture) : format.Format(date, culture);
     }
@@ -132,7 +137,7 @@ internal sealed class CalendarRenderer : IDisposable
             DrawText(canvas, layout.NextButtonBounds, state.NextButtonText, TextAlignment.Center, style.HeaderFontSize, false, state.CanNavigateForward ? style.NavigationButtonColor : style.DisabledDayTextColor);
         }
 
-        DrawText(canvas, layout.TitleBounds, GetTitle(layout.Month, state.Culture, state.HeaderFormat), TextAlignment.Center, style.HeaderFontSize, true, style.HeaderTextColor, style.EventPadding);
+        DrawText(canvas, layout.TitleBounds, GetTitle(layout.Month, state.Culture, state.HeaderFormat, state.HeaderFormatter), TextAlignment.Center, style.HeaderFontSize, true, style.HeaderTextColor, style.EventPadding);
         if (layout.TodayButtonVisible)
         {
             Fill(canvas, layout.TodayButtonBounds, style.HeaderBackground);
@@ -542,12 +547,12 @@ internal sealed class CalendarRenderer : IDisposable
         };
     }
 
-    private string GetTitle(CalendarMonth month, CultureInfo culture, CalendarTextFormat format)
+    private string GetTitle(CalendarMonth month, CultureInfo culture, CalendarTextFormat format, Func<CalendarMonth, string>? formatter)
     {
-        var key = (month.Year, month.Month, culture, format);
+        var key = (month.Year, month.Month, culture, format, formatter);
         if (titleKey != key)
         {
-            title = FormatTitle(month, culture, format);
+            title = FormatTitle(month, culture, format, formatter);
             titleKey = key;
         }
 

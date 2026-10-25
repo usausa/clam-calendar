@@ -18,7 +18,7 @@
 
     <Grid>
         <Grid Style="{StaticResource FillGrid}"
-              RowDefinitions="*">
+              RowDefinitions="*,Auto">
             <!-- ClamCalendarOverlay places the templated views over the days and follows the swipe on its own -->
             <Grid Grid.Row="0">
                 <clam:ClamCalendarView x:Name="Calendar"
@@ -53,6 +53,9 @@
                 </clam:ClamCalendarOverlay>
             </Grid>
 
+            <Label Grid.Row="1"
+                   Style="{StaticResource StatusLabel}"
+                   Text="{Binding Statistics}" />
         </Grid>
 
         <cmc:BottomSheetView Style="{StaticResource SettingSheet}"

@@ -30,6 +30,7 @@
 | `NavigationButtonsVisible` | `bool` | `true` | ✓ | Previous and next buttons |
 | `TodayButtonVisible` | `bool` | `false` | ✓ | Today button next to the next button. The title stays centered in the header whether or not it is shown, and the button is drawn over the title |
 | `HeaderFormat` | `string?` | `null` | ✓ | Format of the first day of the month for the title: composite when it contains `{` (`{0:yyyy/MM} plan`), otherwise a format string (`yyyy/MM`); `null` uses `YearMonthPattern` of the culture |
+| `HeaderFormatter` | `Func<CalendarMonth, string>?` | `null` | | Title text from code; used before `HeaderFormat` |
 | `PrevButtonText`, `NextButtonText`, `TodayButtonText` | `string` | `◀`, `▶`, `Today` | ✓ | Button texts |
 | `WeekdayHeaderVisible` | `bool` | `true` | ✓ | Weekday row |
 | `WeekdayNameFormat` | `CalendarWeekdayNameFormat` | `Initial` | ✓ | `Initial` (M / 月), `Abbreviated` (Mon) or `Full` (Monday) |
@@ -61,7 +62,7 @@
 | `GetDateNumberBounds(DateOnly date)` | `Rect?` | Date number of the date in DIP, same `null` cases |
 | `ClearSelection()` | `void` | Clears the selection of every mode |
 | `CancelInteraction()` | `void` | Stops the current gesture |
-| `Invalidate()` | `void` | Recreates the renderer and redraws after the content of `CalendarStyle` was changed in place |
+| `ApplyStyle()` | `void` | Recreates the renderer and redraws after the content of `CalendarStyle` was changed in place |
 | `InvalidateSurface()` | `void` | Redraws |
 | `Dispose()` | `void` | Releases the timers, subscriptions and native resources |
 
@@ -75,6 +76,7 @@
 | `EventTapped` | `CalendarEventEventArgs` | Event bar tapped, with the day under the tap. With neither the event nor the command set, the tap becomes a day tap and selects the day |
 | `OverflowTapped` | `CalendarOverflowEventArgs` | `+N` tapped, with every event of the day. With neither the event nor the command set, the tap becomes a day tap and selects the day |
 | `SelectionChanged` | `EventArgs` | Selection changed by a tap or a property |
+| `FrameRendered` | `CalendarFrameEventArgs` | Raised after every painted frame with `ElapsedMilliseconds`, `DayCount` (the drawn day cells), `TextMeasurements` (measurements added by this frame) and `Animating` (a month slide is running); not raised while the view has no size |
 
 Disabled days and blank days of the neighboring months raise no tap events.  
 With `EventDisplayMode` of `Dots` there are no bars and no `+N`, so every tap of the body is a day tap and `EventTapped` and `OverflowTapped` are never raised; read the events of the day from `CalendarDayEventArgs.Day`.  
@@ -127,8 +129,8 @@ The month is rebuilt before the application loaded the items of the new range, s
 ## 🎨 CalendarStyle
 
 A style can be a XAML resource.  
-Treat it as immutable once assigned and replace it with a `with` expression to change it, or call `Invalidate()` after changing it in place.  
-Invalid sizes throw `ArgumentException` when the style is assigned or `Invalidate()` is called, and `null` throws `ArgumentNullException`.  
+Treat it as immutable once assigned and replace it with a `with` expression to change it, or call `ApplyStyle()` after changing it in place.  
+Invalid sizes throw `ArgumentException` when the style is assigned or `ApplyStyle()` is called, and `null` throws `ArgumentNullException`.  
 Sizes are in DIP.  
 
 | Name | Type | Default | Description |
@@ -167,17 +169,6 @@ Sizes are in DIP.
 | `GridLineMode` | `CalendarGridLineMode` | `All` | Lines of the body: `All`, `Horizontal`, `Vertical` or `None`; the separators under the header and the weekday row are always drawn |
 | `EventDisplayMode` | `CalendarEventDisplayMode` | `Bars` | `Bars` draws the bars and the `+N` of the slot rows, `Dots` draws one dot per event of the day in the first slot row |
 | `MaxVisibleDots` | `int` | `4` | Dots per day of `Dots`; `0` is unlimited and the events over the limit are not drawn |
-
-## 🔤 Fonts
-
-Per character font fallback comes from [SkiaExtension](https://github.com/usausa/skia-extension).  
-Configure it with `FallbackFonts` in the `SkiaExtension` namespace at startup, before the first view is shown.  
-`Languages` defaults to the UI language of the device.  
-
-```csharp
-FallbackFonts.Languages = ["ja", "en"];
-FallbackFonts.Typefaces = [SKTypeface.FromStream(await FileSystem.OpenAppPackageFileAsync("NotoSansJP-Regular.ttf"))];
-```
 
 ## 🏗 CalendarMonthBuilder
 
@@ -294,3 +285,14 @@ Days of the neighboring months that are not drawn because of `OutsideMonthDaysVi
 | `CalendarEventEventArgs` | `Event`, `Day`, `Handled` | Event bar tapped; `Day` is the column under the tap |
 | `CalendarOverflowEventArgs` | `Day`, `HiddenCount`, `Events`, `Handled` | `+N` tapped; `Events` are all events of the day |
 | `CalendarDisplayDateChangedEventArgs` | `DisplayDate`, `FirstDate`, `LastDate` | Visible range |
+
+## 🔤 Fonts
+
+Per character font fallback comes from [SkiaExtension](https://github.com/usausa/skia-extension).  
+Configure it with `FallbackFonts` in the `SkiaExtension` namespace at startup, before the first view is shown.  
+`Languages` defaults to the UI language of the device.  
+
+```csharp
+FallbackFonts.Languages = ["ja", "en"];
+FallbackFonts.Typefaces = [SKTypeface.FromStream(await FileSystem.OpenAppPackageFileAsync("NotoSansJP-Regular.ttf"))];
+```

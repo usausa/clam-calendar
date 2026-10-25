@@ -9,6 +9,8 @@ internal sealed class CalendarRenderState
 
     public CalendarTextFormat HeaderFormat { get; init; } = CalendarTextFormat.Default;
 
+    public Func<CalendarMonth, string>? HeaderFormatter { get; init; }
+
     public CalendarWeekdayNameFormat WeekdayNameFormat { get; init; }
 
     public string PrevButtonText { get; init; } = "◀";

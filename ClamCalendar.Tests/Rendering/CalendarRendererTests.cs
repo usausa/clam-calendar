@@ -24,6 +24,30 @@ public sealed class CalendarRendererTests
     }
 
     [Fact]
+    public void HeaderFormatterIsUsedBeforeTheFormat()
+    {
+        // Arrange
+        var month = new CalendarMonthBuilder().Build(2026, 9, Today);
+
+        // Act & Assert
+        Assert.Equal("2026 Q3", CalendarRenderer.FormatTitle(month, CultureInfo.GetCultureInfo("ja-JP"), CalendarTextFormat.Parse("yyyy/MM"), static x => $"{x.Year} Q{((x.Month - 1) / 3) + 1}"));
+    }
+
+    [Fact]
+    public void HeaderFormatterFlowsIntoTheRenderState()
+    {
+        // Arrange
+        using var view = new ClamCalendarView();
+        Func<CalendarMonth, string> formatter = static x => x.Year.ToString(CultureInfo.InvariantCulture);
+
+        // Act
+        view.HeaderFormatter = formatter;
+
+        // Assert
+        Assert.Same(formatter, view.CreateRenderState().HeaderFormatter);
+    }
+
+    [Fact]
     public void HeaderFormatIsParsedOnceUntilItChanges()
     {
         // Arrange

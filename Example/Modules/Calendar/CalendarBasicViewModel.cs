@@ -149,7 +149,7 @@ public sealed partial class CalendarBasicViewModel : AppViewModelBase
     protected override Task OnNotifyFunction4()
     {
         ClearSelection();
-        Status = "Selection cleared.";
+        Status = "No selection";
         return Task.CompletedTask;
     }
 
@@ -204,7 +204,7 @@ public sealed partial class CalendarBasicViewModel : AppViewModelBase
             MinDate = null;
             MaxDate = null;
             LimitText = "Limit off";
-            Status = "Limit removed.";
+            Status = "No limit";
         }
     }
 }

@@ -1,5 +1,6 @@
 namespace ClamCalendar;
 
+using System.Diagnostics;
 using System.Globalization;
 
 using ClamCalendar.Layout;
@@ -50,6 +51,8 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
     private IDispatcherTimer? dateTimer;
     private bool layoutDirty = true;
     private bool disposed;
+
+    public event EventHandler<CalendarFrameEventArgs>? FrameRendered;
 
     public IEnumerable<CalendarEvent>? Events
     {
@@ -140,6 +143,16 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
     {
         get => (string?)GetValue(HeaderFormatProperty);
         set => SetValue(HeaderFormatProperty, value);
+    }
+
+    public Func<CalendarMonth, string>? HeaderFormatter
+    {
+        get;
+        set
+        {
+            field = value;
+            InvalidateSurface();
+        }
     }
 
     public string PrevButtonText
@@ -309,7 +322,7 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
     }
 
     // Redraws after the content of the style was changed in place
-    public void Invalidate()
+    public void ApplyStyle()
     {
         ObjectDisposedException.ThrowIf(disposed, this);
         CalendarStyle.Validate();
@@ -331,6 +344,8 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
             return;
         }
 
+        var started = Stopwatch.GetTimestamp();
+        var measurements = currentRenderer.Measurements;
         var canvas = e.Surface.Canvas;
         canvas.Save();
         try
@@ -344,12 +359,14 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
         }
 
         base.OnPaintSurface(e);
+        FrameRendered?.Invoke(this, new CalendarFrameEventArgs(Stopwatch.GetElapsedTime(started).TotalMilliseconds, layout.WeekCount * CalendarLayout.DaysPerWeek, currentRenderer.Measurements - measurements, slideDirection != 0));
     }
 
     internal CalendarRenderState CreateRenderState() => new()
     {
         Culture = Culture ?? CultureInfo.CurrentCulture,
         HeaderFormat = headerFormat ??= CalendarTextFormat.Parse(HeaderFormat),
+        HeaderFormatter = HeaderFormatter,
         WeekdayNameFormat = WeekdayNameFormat,
         PrevButtonText = PrevButtonText,
         NextButtonText = NextButtonText,

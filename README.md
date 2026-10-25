@@ -129,7 +129,7 @@ public sealed class CalendarViewModel : ObservableObject
 | Month | `DisplayDate` (TwoWay), `Navigate` / `GoToToday`, `MinDate` / `MaxDate`, `DisplayDateChangedCommand` |
 | Data | `Events`, `Stamps`, `Holidays`, `DayLabels`, `DayAppearances`; `INotifyCollectionChanged` sources redraw on change |
 | Layout | `FirstDayOfWeek`, `FixedWeekRows`, `OutsideMonthDaysVisible`, `MaxVisibleSlots`, `WeekNumberVisible`, `Culture`, `WeekdayNameFormat` |
-| Header | `HeaderVisible`, `NavigationButtonsVisible`, `TodayButtonVisible`, `HeaderFormat` and the button texts, or `HeaderVisible="False"` with a header of the page |
+| Header | `HeaderVisible`, `NavigationButtonsVisible`, `TodayButtonVisible`, `HeaderFormat` (or `HeaderFormatter` for a title the format cannot build) and the button texts, or `HeaderVisible="False"` with a header of the page |
 | Selection | `SelectionMode`, `SelectedDate` / `SelectedStartDate` / `SelectedEndDate` (TwoWay), `SelectedDates`, `AllowDeselect`, `MaxSelectableDays`, `DisabledDates` |
 | Input | `DayTappedCommand`, `DayLongPressedCommand`, `EventTappedCommand`, `OverflowTappedCommand` with the same arguments as the events |
 | Colors | `CalendarStyle` as a resource or a view model property |
@@ -149,6 +149,7 @@ Holiday calculation, event storage and navigation belong to the application.
 | **Styling** | Fonts, sizes and colors in `CalendarStyle`, the shape of the today and selection marks and which grid lines are drawn, usable as a XAML resource |
 | **Fonts** | Per character fallback to the `FallbackFonts` typefaces of SkiaExtension and system fonts, emoji sequences included |
 | **Input** | Tap, long press, swipe, commands for MVVM, parent scroll handed over on vertical movement |
+| **Diagnostics** | `FrameRendered` reports the draw time, the drawn day cells and the text measurements of every frame |
 
 ## 📖 API
 

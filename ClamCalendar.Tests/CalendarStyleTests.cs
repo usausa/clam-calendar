@@ -84,7 +84,7 @@ public sealed class CalendarStyleTests
     }
 
     [Fact]
-    public void InvalidateRejectsAStyleChangedToInvalidValues()
+    public void ApplyStyleRejectsAStyleChangedToInvalidValues()
     {
         // Arrange
         using var view = new ClamCalendarView();
@@ -93,18 +93,18 @@ public sealed class CalendarStyleTests
         view.CalendarStyle.DateRowHeight = Double.NaN;
 
         // Assert
-        Assert.Throws<ArgumentException>(view.Invalidate);
+        Assert.Throws<ArgumentException>(view.ApplyStyle);
     }
 
     [Fact]
-    public void InvalidateRedrawsUntilTheViewIsDisposed()
+    public void ApplyStyleRedrawsUntilTheViewIsDisposed()
     {
         // Arrange
         var view = new ClamCalendarView();
 
         // Act
         view.CalendarStyle.HeaderHeight = 56;
-        view.Invalidate();
+        view.ApplyStyle();
 
         // Assert
         Assert.Equal(56, view.CalendarStyle.HeaderHeight);
@@ -113,6 +113,6 @@ public sealed class CalendarStyleTests
         view.Dispose();
 
         // Assert
-        Assert.Throws<ObjectDisposedException>(view.Invalidate);
+        Assert.Throws<ObjectDisposedException>(view.ApplyStyle);
     }
 }

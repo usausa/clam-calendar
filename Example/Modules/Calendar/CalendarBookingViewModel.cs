@@ -170,7 +170,7 @@ public sealed partial class CalendarBookingViewModel : AppViewModelBase
     {
         ClearSelection();
         UpdateSummary();
-        Status = "Cleared";
+        Status = "No dates";
         return Task.CompletedTask;
     }
 

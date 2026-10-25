@@ -29,6 +29,9 @@ public sealed partial class CalendarOverlayViewModel : AppViewModelBase
     [ObservableProperty]
     public partial bool AnimationEnabled { get; set; } = true;
 
+    [ObservableProperty]
+    public partial string Statistics { get; set; } = String.Empty;
+
     public IObserveCommand DisplayDateChangedCommand { get; }
 
     //--------------------------------------------------------------------------------
@@ -72,6 +75,9 @@ public sealed partial class CalendarOverlayViewModel : AppViewModelBase
     //--------------------------------------------------------------------------------
     // Operation
     //--------------------------------------------------------------------------------
+
+    public void UpdateStatistics(CalendarFrameEventArgs e) =>
+        Statistics = $"{e.ElapsedMilliseconds:F2}ms / {e.DayCount} days / {e.TextMeasurements} measures{(e.Animating ? " / sliding" : String.Empty)}";
 
     private void Load(CalendarDisplayDateChangedEventArgs e)
     {
