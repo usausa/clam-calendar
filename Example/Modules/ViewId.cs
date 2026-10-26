@@ -7,7 +7,7 @@ public enum ViewId
     CalendarStyle,
     CalendarStamps,
     CalendarBooking,
-    CalendarOverlay,
+    CalendarPainter,
     CalendarAgenda,
     CalendarCompact
 }

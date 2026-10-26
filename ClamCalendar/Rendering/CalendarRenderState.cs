@@ -2,6 +2,8 @@ namespace ClamCalendar.Rendering;
 
 using System.Globalization;
 
+using SkiaSharp;
+
 // Everything the renderer needs besides the layout: texts, culture, selection callbacks and the month slide animation
 internal sealed class CalendarRenderState
 {
@@ -33,6 +35,8 @@ internal sealed class CalendarRenderState
     public Func<DateOnly, bool>? IsInRange { get; init; }
 
     public Func<DateOnly, bool>? IsDisabled { get; init; }
+
+    public Action<SKCanvas, CalendarDayPaintContext>? DayPainter { get; init; }
 
     // Horizontal offset of the body in DIP and its opacity while the month slides in
     public float SlideOffset { get; init; }

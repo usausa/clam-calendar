@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:s="http://smart/maui"
+             xmlns:shell="clr-namespace:Example.Shell"
+             xmlns:module="clr-namespace:Example.Modules.Calendar"
+             xmlns:clam="clr-namespace:ClamCalendar;assembly=ClamCalendar" xmlns:cmc="clr-namespace:MauiComponents.Controls;assembly=MauiComponents.Controls"
+             x:Class="Example.Modules.Calendar.CalendarPainterView"
+             x:DataType="{x:Type module:CalendarPainterViewModel}"
+             s:BindingContextResolver.Type="{x:Type module:CalendarPainterViewModel}"
+             shell:ShellProperty.Title="Painter"
+             shell:ShellProperty.Function1Text="Back"
+             shell:ShellProperty.Function2Text="Setting"
+             shell:ShellProperty.Function4Text="Today"
+             shell:ShellProperty.Function1Enabled="True"
+             shell:ShellProperty.Function2Enabled="True"
+             shell:ShellProperty.Function4Enabled="True">
+
+    <Grid>
+        <Grid Style="{StaticResource FillGrid}"
+              RowDefinitions="*,Auto">
+            <clam:ClamCalendarView x:Name="Calendar"
+                                   Grid.Row="0"
+                                   DayAppearances="{Binding DayAppearances}"
+                                   DisplayDate="{Binding DisplayDate, Mode=TwoWay}"
+                                   DisplayDateChangedCommand="{Binding DisplayDateChangedCommand}"
+                                   Events="{Binding Events}"
+                                   Holidays="{Binding Holidays}"
+                                   MaxVisibleSlots="2"
+                                   NavigationAnimationEnabled="{Binding AnimationEnabled}" />
+
+            <Label Grid.Row="1"
+                   Style="{StaticResource StatusLabel}"
+                   Text="{Binding Statistics}" />
+        </Grid>
+
+        <cmc:BottomSheetView Style="{StaticResource SettingSheet}"
+                             IsOpen="{Binding IsSettingOpen}">
+            <cmc:BottomSheetView.SheetTemplate>
+                <DataTemplate x:DataType="{x:Type module:CalendarPainterViewModel}">
+                    <VerticalStackLayout Style="{StaticResource SheetStack}">
+                        <Label Style="{StaticResource SheetTitle}"
+                               Text="Painter" />
+                        <Grid Style="{StaticResource SheetGrid}"
+                              ColumnDefinitions="*,*">
+                            <Grid Grid.Column="0"
+                                  ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0"
+                                       Style="{StaticResource SheetSwitchLabel}"
+                                       Text="Animation" />
+                                <Switch Grid.Column="1"
+                                        Style="{StaticResource SheetSwitch}"
+                                        IsToggled="{Binding AnimationEnabled}" />
+                            </Grid>
+                        </Grid>
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </cmc:BottomSheetView.SheetTemplate>
+        </cmc:BottomSheetView>
+    </Grid>
+
+</ContentView>

@@ -255,6 +255,11 @@ internal sealed class CalendarRenderer : IDisposable
             DrawHorizontalLine(canvas, body.X, body.Right, body.Y + (layout.WeekHeight * layout.WeekCount));
         }
 
+        if (state.DayPainter is { } painter)
+        {
+            PaintDays(canvas, layout, state, painter);
+        }
+
         if (layered)
         {
             canvas.Restore();
@@ -306,33 +311,9 @@ internal sealed class CalendarRenderer : IDisposable
             return;
         }
 
-        Color textColor;
-        Color? markColor = null;
-        var markStyle = CalendarMarkStyle.Fill;
-        var selected = false;
-        if (state.IsDisabled?.Invoke(day.Date) ?? false)
-        {
-            textColor = style.DisabledDayTextColor;
-        }
-        else if (state.IsSelected?.Invoke(day.Date) ?? false)
-        {
-            textColor = style.SelectedDayTextColor;
-            markColor = style.SelectedDayBackground;
-            markStyle = style.SelectedMarkStyle;
-            selected = true;
-        }
-        else if (day.IsToday)
-        {
-            textColor = style.TodayTextColor;
-            markColor = style.TodayBackground;
-            markStyle = style.TodayMarkStyle;
-        }
-        else
-        {
-            textColor = day.Appearance?.DateNumberColor ?? GetDateTextColor(day);
-            markColor = day.Appearance?.DateNumberBackground;
-        }
-
+        var disabled = state.IsDisabled?.Invoke(day.Date) ?? false;
+        var selected = !disabled && (state.IsSelected?.Invoke(day.Date) ?? false);
+        var (textColor, markColor, markStyle) = ResolveDateNumber(day, selected, disabled);
         if (markColor is not null)
         {
             DrawDateNumberMark(canvas, bubble, markColor, markStyle);
@@ -349,6 +330,52 @@ internal sealed class CalendarRenderer : IDisposable
             var cell = layout.GetCellBounds(week, column);
             var labelBounds = new CalendarRect(bubble.Right + 2, bubble.Y, cell.Right - bubble.Right - 4, bubble.Height);
             DrawText(canvas, labelBounds, day.Label, TextAlignment.Start, style.DayLabelFontSize, false, day.Appearance?.LabelColor ?? (day.IsCurrentMonth ? style.DayLabelTextColor : style.OutsideMonthTextColor));
+        }
+    }
+
+    private (Color TextColor, Color? MarkColor, CalendarMarkStyle MarkStyle) ResolveDateNumber(CalendarDay day, bool selected, bool disabled)
+    {
+        if (disabled)
+        {
+            return (style.DisabledDayTextColor, null, CalendarMarkStyle.Fill);
+        }
+
+        if (selected)
+        {
+            return (style.SelectedDayTextColor, style.SelectedDayBackground, style.SelectedMarkStyle);
+        }
+
+        if (day.IsToday)
+        {
+            return (style.TodayTextColor, style.TodayBackground, style.TodayMarkStyle);
+        }
+
+        return (day.Appearance?.DateNumberColor ?? GetDateTextColor(day), day.Appearance?.DateNumberBackground, CalendarMarkStyle.Fill);
+    }
+
+    private void PaintDays(SKCanvas canvas, CalendarLayout layout, CalendarRenderState state, Action<SKCanvas, CalendarDayPaintContext> painter)
+    {
+        var month = layout.Month;
+        for (var w = 0; w < layout.WeekCount; w++)
+        {
+            var week = month.Weeks[w];
+            for (var column = 0; column < CalendarLayout.DaysPerWeek; column++)
+            {
+                var day = week.Days[column];
+                var cell = layout.GetCellBounds(w, column);
+                if ((!day.IsCurrentMonth && !state.OutsideMonthDaysVisible) || cell.IsEmpty)
+                {
+                    continue;
+                }
+
+                var disabled = state.IsDisabled?.Invoke(day.Date) ?? false;
+                var selected = !disabled && (state.IsSelected?.Invoke(day.Date) ?? false);
+                var context = new CalendarDayPaintContext(ToSkRect(cell), ToSkRect(layout.GetDateNumberBounds(w, column)), day, selected, disabled, ResolveDateNumber(day, selected, disabled).TextColor);
+                var count = canvas.Save();
+                canvas.ClipRect(context.Bounds);
+                painter(canvas, context);
+                canvas.RestoreToCount(count);
+            }
         }
     }
 

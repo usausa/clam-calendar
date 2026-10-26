@@ -133,7 +133,7 @@ public sealed class CalendarViewModel : ObservableObject
 | Selection | `SelectionMode`, `SelectedDate` / `SelectedStartDate` / `SelectedEndDate` (TwoWay), `SelectedDates`, `AllowDeselect`, `MaxSelectableDays`, `DisabledDates` |
 | Input | `DayTappedCommand`, `DayLongPressedCommand`, `EventTappedCommand`, `OverflowTappedCommand` with the same arguments as the events |
 | Colors | `CalendarStyle` as a resource or a view model property |
-| Overlay | `ClamCalendarOverlay` to place templated views of the view model over single days, or `DayAreaBounds`, `GetDayBounds` and `GetDateNumberBounds` for an overlay written by hand |
+| Day painter | `DayPainter` to draw over each day of the month with SkiaSharp, or `DayAreaBounds`, `GetDayBounds` and `GetDateNumberBounds` to place MAUI views over the calendar by hand |
 
 Holiday calculation, event storage and navigation belong to the application.  
 
@@ -150,6 +150,7 @@ Holiday calculation, event storage and navigation belong to the application.
 | **Fonts** | Per character fallback to the `FallbackFonts` typefaces of SkiaExtension and system fonts, emoji sequences included |
 | **Input** | Tap, long press, swipe, commands for MVVM, parent scroll handed over on vertical movement |
 | **Diagnostics** | `FrameRendered` reports the draw time, the drawn day cells and the text measurements of every frame |
+| **Performance** | Judged by the p95 of the draw time staying within 16 ms; fps is not used and no extra margin is added for slower devices |
 
 ## 📖 API
 

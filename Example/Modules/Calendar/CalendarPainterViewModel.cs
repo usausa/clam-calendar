@@ -1,7 +1,25 @@
 namespace Example.Modules.Calendar;
 
-public sealed partial class CalendarOverlayViewModel : AppViewModelBase
+using SkiaExtension;
+
+public sealed partial class CalendarPainterViewModel : AppViewModelBase
 {
+    private const float BadgeRadius = 9;
+
+    private const float BadgeFontSize = 11;
+
+    private const float BarHeight = 3;
+
+    private static readonly SKColor BadgeColor = new(0xE8, 0x71, 0x0A);
+
+    private static readonly SKColor BarColor = new(0x1A, 0x73, 0xE8);
+
+    private static readonly string[] CountTexts = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+
+    private readonly FontResolver fonts = new("sans-serif");
+
+    private readonly SKPaint paint = new() { IsAntialias = true };
+
     [ObservableProperty]
     public partial DateOnly DisplayDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
 
@@ -15,16 +33,7 @@ public sealed partial class CalendarOverlayViewModel : AppViewModelBase
     public partial IReadOnlyDictionary<DateOnly, CalendarDayAppearance>? DayAppearances { get; set; }
 
     [ObservableProperty]
-    public partial IReadOnlyList<CalendarOverlayBadge> Badges { get; set; } = [];
-
-    [ObservableProperty]
-    public partial IReadOnlyList<CalendarOverlayBadge> TodayMarks { get; set; } = [];
-
-    [ObservableProperty]
     public partial bool IsSettingOpen { get; set; }
-
-    [ObservableProperty]
-    public partial bool OverlayVisible { get; set; } = true;
 
     [ObservableProperty]
     public partial bool AnimationEnabled { get; set; } = true;
@@ -38,9 +47,20 @@ public sealed partial class CalendarOverlayViewModel : AppViewModelBase
     // Constructor
     //--------------------------------------------------------------------------------
 
-    public CalendarOverlayViewModel()
+    public CalendarPainterViewModel()
     {
         DisplayDateChangedCommand = MakeDelegateCommand<CalendarDisplayDateChangedEventArgs>(CommandMode.Simple, Load);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+
+        if (disposing)
+        {
+            paint.Dispose();
+            fonts.Dispose();
+        }
     }
 
     //--------------------------------------------------------------------------------
@@ -79,34 +99,33 @@ public sealed partial class CalendarOverlayViewModel : AppViewModelBase
     public void UpdateStatistics(CalendarFrameEventArgs e) =>
         Statistics = $"{e.ElapsedMilliseconds:F2}ms / {e.DayCount} days / {e.TextMeasurements} measures{(e.Animating ? " / sliding" : String.Empty)}";
 
-    private void Load(CalendarDisplayDateChangedEventArgs e)
+    public void PaintDay(SKCanvas canvas, CalendarDayPaintContext context)
     {
-        var events = SampleSchedule.CreateEvents(e.FirstDate, e.LastDate);
-        Events = events;
-        Holidays = SampleHolidays.GetHolidays(e.FirstDate, e.LastDate);
-        DayAppearances = SampleSchedule.CreateDayAppearances(e.FirstDate, e.LastDate);
-        Badges = CreateBadges(e.DisplayDate, events);
-
-        var today = DateOnly.FromDateTime(DateTime.Today);
-        TodayMarks = (today.Year == e.DisplayDate.Year) && (today.Month == e.DisplayDate.Month)
-            ? [new CalendarOverlayBadge(today, String.Empty)]
-            : [];
-    }
-
-    private static List<CalendarOverlayBadge> CreateBadges(DateOnly displayDate, IReadOnlyList<CalendarEvent> events)
-    {
-        var badges = new List<CalendarOverlayBadge>();
-        var daysInMonth = DateTime.DaysInMonth(displayDate.Year, displayDate.Month);
-        for (var day = 1; day <= daysInMonth; day++)
+        if (context.Day.IsToday)
         {
-            var date = new DateOnly(displayDate.Year, displayDate.Month, day);
-            var count = events.Count(x => (x.StartDate <= date) && (x.EndDate >= date));
-            if (count > 0)
-            {
-                badges.Add(new CalendarOverlayBadge(date, count.ToString(CultureInfo.InvariantCulture)));
-            }
+            paint.Color = BarColor;
+            canvas.DrawRect(context.DateNumberBounds.Left, context.DateNumberBounds.Bottom - BarHeight, context.DateNumberBounds.Width, BarHeight, paint);
         }
 
-        return badges;
+        var count = context.Day.Events.Count;
+        if (count == 0)
+        {
+            return;
+        }
+
+        var x = context.Bounds.Right - BadgeRadius - 2;
+        var y = context.Bounds.Top + BadgeRadius + 2;
+        paint.Color = BadgeColor;
+        canvas.DrawCircle(x, y, BadgeRadius, paint);
+
+        paint.Color = SKColors.White;
+        canvas.DrawText(fonts.CreateText(count < CountTexts.Length ? CountTexts[count] : "9+", BadgeFontSize, true), x, fonts.GetMetrics(BadgeFontSize, true).GetCenterBaseline(y), SKTextAlign.Center, paint);
+    }
+
+    private void Load(CalendarDisplayDateChangedEventArgs e)
+    {
+        Events = SampleSchedule.CreateEvents(e.FirstDate, e.LastDate);
+        Holidays = SampleHolidays.GetHolidays(e.FirstDate, e.LastDate);
+        DayAppearances = SampleSchedule.CreateDayAppearances(e.FirstDate, e.LastDate);
     }
 }

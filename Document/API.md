@@ -31,6 +31,7 @@
 | `TodayButtonVisible` | `bool` | `false` | ✓ | Today button next to the next button. The title stays centered in the header whether or not it is shown, and the button is drawn over the title |
 | `HeaderFormat` | `string?` | `null` | ✓ | Format of the first day of the month for the title: composite when it contains `{` (`{0:yyyy/MM} plan`), otherwise a format string (`yyyy/MM`); `null` uses `YearMonthPattern` of the culture |
 | `HeaderFormatter` | `Func<CalendarMonth, string>?` | `null` | | Title text from code; used before `HeaderFormat` |
+| `DayPainter` | `Action<SKCanvas, CalendarDayPaintContext>?` | `null` | | Draws over each day of the month (see below) |
 | `PrevButtonText`, `NextButtonText`, `TodayButtonText` | `string` | `◀`, `▶`, `Today` | ✓ | Button texts |
 | `WeekdayHeaderVisible` | `bool` | `true` | ✓ | Weekday row |
 | `WeekdayNameFormat` | `CalendarWeekdayNameFormat` | `Initial` | ✓ | `Initial` (M / 月), `Abbreviated` (Mon) or `Full` (Monday) |
@@ -84,47 +85,39 @@ The slide animation and the long press timer need a handler, so they are skipped
 The month is rebuilt at the date change of the device while `Today` is not set and the view is attached, so the today mark moves without a reload; the visible range does not change, so `DisplayDateChanged` is not raised.  
 The first `DisplayDateChanged` is raised while the page is being attached, which can be inside a navigation; a command that refuses to run during a busy state should allow it there.  
 
-## 🧷 Overlays
+## 🖌 DayPainter
 
-`ClamCalendarView` draws on a single canvas and takes no children, so MAUI views of its own go on `ClamCalendarOverlay`, a layout placed over it: images, gradients, progress rings, badges and anything a style value or a `CalendarDayAppearance` cannot draw.  
-The items come from the view model, so the page needs no code behind.  
+`ClamCalendarView` draws on a single canvas and takes no children, so content of its own is drawn by `DayPainter`: images, gradients, progress rings, badges and anything a style value or a `CalendarDayAppearance` cannot draw.  
+The painter is called for every drawn day in every frame, after the backgrounds, the grid lines, the date numbers, the stamps and the events of the whole month, so it draws over all of them.  
+The canvas is in DIP and clipped to the cell, and its state is saved before the call and restored after it.  
+The days outside the month are painted as well unless `OutsideMonthDaysVisible` is `False`, and the painter runs while the calendar is drawn, so it must not change the calendar.  
 
-| Name | Type | Default | Description |
-|---|---|---|---|
-| `Calendar` | `ClamCalendarView?` | `null` | The calendar to place the items on, usually `{x:Reference}` |
-| `ItemsSource` | `IEnumerable?` | `null` | Items of `ICalendarOverlayItem`; other items are skipped. An `INotifyCollectionChanged` source is watched while the overlay is attached |
-| `ItemTemplate` | `DataTemplate?` | `null` | Template of one item; a `DataTemplateSelector` is used as well |
-| `Placement` | `CalendarOverlayPlacement` | `Day` | `Day` gives the template the whole cell, `DateNumber` the box of the date number |
-| `FollowSlide` | `bool` | `true` | Follows `SlideOffset` and `SlideOpacity` while the month slides |
+| Name | Type | Description |
+|---|---|---|
+| `Bounds` | `SKRect` | Whole day cell in DIP |
+| `DateNumberBounds` | `SKRect` | Box of the date number of the day |
+| `Day` | `CalendarDay` | Day being painted, with its date, kind, label, appearance, stamps and events |
+| `IsSelected` | `bool` | Whether the day is selected; a disabled day is never reported as selected |
+| `IsDisabled` | `bool` | Whether the day is disabled |
+| `TextColor` | `Color` | Color the date number was drawn with, after the disabled state, the selection, today and `CalendarDayAppearance` were applied |
 
-`ICalendarOverlayItem` has one member, `OverlayDate`, which decides the day the item is placed on.  
-A date outside the drawn range is skipped, so the view model can hand over the items of the whole month.  
-The template fills the rect of the placement, so it aligns itself inside the day with `HorizontalOptions`, `VerticalOptions`, `Margin` and `TranslationY`.  
-`InputTransparent` is `True` by default, so the taps still reach the calendar; set it to `False` for an item that is tapped.  
-The positions are recomputed on `SizeChanged` and on the change of the `Month` property.  
-The month is rebuilt before the application loaded the items of the new range, so the rebuilds of one change are coalesced into one on the next turn of the dispatcher, and the views that are not used stay as hidden children for the next month instead of being built again.  
+A paint and a `FontResolver` of [SkiaExtension](https://github.com/usausa/skia-extension) are kept by the caller instead of being created in the painter, so a frame allocates nothing; `ChartDrawing` of [ClamChart](https://github.com/usausa/clam-chart) draws a sparkline into the cell the same way.  
 
-```xml
-<Grid>
-    <clam:ClamCalendarView x:Name="Calendar"
-                           Events="{Binding Events}" />
-    <clam:ClamCalendarOverlay Calendar="{x:Reference Calendar}"
-                              ItemsSource="{Binding Badges}">
-        <clam:ClamCalendarOverlay.ItemTemplate>
-            <DataTemplate x:DataType="{x:Type model:CalendarOverlayBadge}">
-                <Border HorizontalOptions="End" VerticalOptions="End"
-                        WidthRequest="16" HeightRequest="16">
-                    <Label Text="{Binding Text}" />
-                </Border>
-            </DataTemplate>
-        </clam:ClamCalendarOverlay.ItemTemplate>
-    </clam:ClamCalendarOverlay>
-</Grid>
+```csharp
+private readonly SKPaint paint = new() { IsAntialias = true };
+
+Calendar.DayPainter = (canvas, context) =>
+{
+    if (context.Day.Events.Count > 0)
+    {
+        paint.Color = SKColors.Red;
+        canvas.DrawCircle(context.Bounds.Right - 11, context.Bounds.Top + 11, 9, paint);
+    }
+};
 ```
 
-`DayAreaBounds`, `GetDayBounds` and `GetDateNumberBounds` give the same geometry in DIP for an overlay written by hand.  
-`DisplayDateChanged` is raised before the application loaded the data of the new range, so place on the change of `Month` instead.  
-
+`DayAreaBounds`, `GetDayBounds` and `GetDateNumberBounds` give the same geometry in DIP for MAUI views placed over the calendar by hand, which is what a day needs when the content on it is tapped.  
+`DisplayDateChanged` is raised before the application loaded the data of the new range, so place them on the change of `Month` instead.  
 
 ## 🎨 CalendarStyle
 

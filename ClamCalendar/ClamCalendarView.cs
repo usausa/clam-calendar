@@ -9,6 +9,7 @@ using ClamCalendar.Rendering;
 
 using Microsoft.Maui.Dispatching;
 
+using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 
@@ -146,6 +147,16 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
     }
 
     public Func<CalendarMonth, string>? HeaderFormatter
+    {
+        get;
+        set
+        {
+            field = value;
+            InvalidateSurface();
+        }
+    }
+
+    public Action<SKCanvas, CalendarDayPaintContext>? DayPainter
     {
         get;
         set
@@ -378,6 +389,7 @@ public partial class ClamCalendarView : SKCanvasView, IDisposable
         IsSelected = isDateSelected,
         IsInRange = isDateInSelectedRange,
         IsDisabled = isDateDisabled,
+        DayPainter = DayPainter,
         SlideOffset = (float)SlideOffset,
         SlideOpacity = (float)SlideOpacity
     };

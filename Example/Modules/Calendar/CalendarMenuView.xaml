@@ -37,8 +37,8 @@
         <Button Grid.Row="4"
                 Style="{StaticResource MenuButton}"
                 Command="{Binding ForwardCommand}"
-                CommandParameter="{x:Static modules:ViewId.CalendarOverlay}"
-                Text="5.Overlay" />
+                CommandParameter="{x:Static modules:ViewId.CalendarPainter}"
+                Text="5.Painter" />
         <Button Grid.Row="5"
                 Style="{StaticResource MenuButton}"
                 Command="{Binding ForwardCommand}"
