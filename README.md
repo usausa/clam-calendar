@@ -7,9 +7,13 @@
 A .NET MAUI month calendar for Android drawn with SkiaSharp on a single canvas.  
 Month building, event placement, selection and touch handling run in C#, so the view stays light and every visual detail is a style value.  
 
-| 📅 Basic | 🎨 Dark style |
-|:-:|:-:|
-| <img src="Document/basic.png" width="240" /> | <img src="Document/style.png" width="240" /> |
+| 📅 Basic | 🌙 Dark style | 🏷️ Stamps |
+|:-:|:-:|:-:|
+| <img src="Document/basic.png" width="240" /> | <img src="Document/style.png" width="240" /> | <img src="Document/stamps.png" width="240" /> |
+
+| 🛏️ Range selection | 📋 Agenda | 🔸 Compact |
+|:-:|:-:|:-:|
+| <img src="Document/booking.png" width="240" /> | <img src="Document/agenda.png" width="240" /> | <img src="Document/compact.png" width="240" /> |
 
 ## 🚀 Quick Start
 
@@ -54,6 +58,32 @@ FallbackFonts.Typefaces = [SKTypeface.FromStream(await FileSystem.OpenAppPackage
 ```
 
 Swipe horizontally to move between months, tap a day to select it and long press a day to get `DayLongPressed`.  
+
+## 🎨 Look
+
+| Part | Properties |
+|---|---|
+| Text | `FontFamily` with per character fallback through `FallbackFonts` of SkiaExtension, and a font size per part |
+| Header | `HeaderHeight`, `HeaderFormat`, `HeaderFormatter`, the navigation and today buttons, `MonthIndicatorColor` for the watermark |
+| Weekdays | `WeekdayHeaderHeight`, `WeekdayNameStyle`, colors of Saturday and Sunday |
+| Days | `DateRowHeight`, `DateNumberShape`, `DateNumberSize`, `GridLineMode`, colors of the days outside the month and the disabled days |
+| Today and selection | `TodayMarkStyle`, `TodayBackground`, `TodayTextColor`, `SelectedDayBackground`, `SelectedDayTextColor`, `MarkWidth` |
+| Events | `EventDisplayMode` as bars or dots, `EventRowHeight`, `EventFontSize`, `EventDotSize`, `MaxVisibleDots`, `OverflowTextColor` |
+| Extras | `CalendarStamp` images per day, week numbers with `WeekNumberVisible`, `DayAppearances` per date and `DayPainter` for drawing of your own |
+| Theme | The `ClamCalendarThemes` dictionary carries the light and dark colors |
+
+The look is set with bindable properties on the view; there is no style object.  
+Sizes are DIP and the background is `BackgroundColor` of the view.  
+
+Merge the theme of the library and base a style on it.  
+
+```xml
+<ResourceDictionary.MergedDictionaries>
+    <clam:ClamCalendarThemes />
+</ResourceDictionary.MergedDictionaries>
+
+<Style TargetType="clam:ClamCalendarView" BasedOn="{StaticResource ClamCalendarTheme}" />
+```
 
 ## 🔗 Binding and MVVM
 
