@@ -19,27 +19,19 @@
     <Grid>
         <Grid Style="{StaticResource FillGrid}"
               RowDefinitions="*,Auto">
-            <!-- Inside a ScrollView: vertical drags scroll the page, horizontal swipes on the calendar change the month -->
-            <ScrollView Grid.Row="0">
-                <VerticalStackLayout>
-                    <clam:ClamCalendarView Style="{StaticResource StampCalendar}"
-                                           HeightRequest="560"
-                                           DayAppearances="{Binding DayAppearances}"
-                                           DayLabels="{Binding DayLabels}"
-                                           DayLongPressedCommand="{Binding DayLongPressedCommand}"
-                                           DayTappedCommand="{Binding DayTappedCommand}"
-                                           DisplayDate="{Binding DisplayDate, Mode=TwoWay}"
-                                           DisplayDateChangedCommand="{Binding DisplayDateChangedCommand}"
-                                           HeaderFormat="yyyy年 M月"
-                                           Holidays="{Binding Holidays}"
-                                           MonthIndicatorVisible="True"
-                                           Stamps="{Binding Stamps}"
-                                           WeekdayNameFormat="Abbreviated" />
-                    <Label Style="{StaticResource ValueLabel}"
-                           HeightRequest="400"
-                           Text="Parent ScrollView area. Drag vertically to scroll the page and swipe horizontally on the calendar to change the month." />
-                </VerticalStackLayout>
-            </ScrollView>
+            <clam:ClamCalendarView Grid.Row="0"
+                                   Style="{StaticResource StampCalendar}"
+                                   DayAppearances="{Binding DayAppearances}"
+                                   DayLabels="{Binding DayLabels}"
+                                   DayLongPressedCommand="{Binding DayLongPressedCommand}"
+                                   DayTappedCommand="{Binding DayTappedCommand}"
+                                   DisplayDate="{Binding DisplayDate, Mode=TwoWay}"
+                                   DisplayDateChangedCommand="{Binding DisplayDateChangedCommand}"
+                                   HeaderFormat="yyyy年 M月"
+                                   Holidays="{Binding Holidays}"
+                                   MonthIndicatorVisible="True"
+                                   Stamps="{Binding Stamps}"
+                                   WeekdayNameFormat="Abbreviated" />
 
             <Label Grid.Row="1"
                    Style="{StaticResource StatusLabel}"
