@@ -10,6 +10,10 @@
     <Color x:Key="PrimaryTextColor">#DE000000</Color>
     <Color x:Key="SecondaryTextColor">#99000000</Color>
     <Color x:Key="DisabledColor">#61000000</Color>
+    <Color x:Key="DarkPrimaryTextColor">#DEFFFFFF</Color>
+    <Color x:Key="DarkSecondaryTextColor">#B3FFFFFF</Color>
+    <Color x:Key="DarkBackgroundColor">#1F1F1D</Color>
+    <Color x:Key="DarkDividerColor">#383835</Color>
 
     <!-- ================================================================================ -->
     <!-- Main -->
@@ -29,7 +33,7 @@
         <Setter Property="Padding" Value="0" />
         <Setter Property="HorizontalOptions" Value="Fill" />
         <Setter Property="VerticalOptions" Value="Fill" />
-        <Setter Property="BackgroundColor" Value="White" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=White, Dark={StaticResource DarkBackgroundColor}}" />
     </Style>
 
     <!-- ================================================================================ -->
@@ -245,6 +249,7 @@
            TargetType="cmc:BottomSheetView">
         <Setter Property="CornerRadius" Value="16" />
         <Setter Property="HalfExpandedRatio" Value="0.45" />
+        <Setter Property="SheetBackgroundColor" Value="{AppThemeBinding Light=White, Dark={StaticResource DarkBackgroundColor}}" />
     </Style>
 
     <Style x:Key="SheetStack"
@@ -256,7 +261,7 @@
     <Style x:Key="SheetTitle"
            TargetType="Label">
         <Setter Property="Padding" Value="2,6,2,0" />
-        <Setter Property="TextColor" Value="{StaticResource SecondaryTextColor}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource SecondaryTextColor}, Dark={StaticResource DarkSecondaryTextColor}}" />
         <Setter Property="FontSize" Value="11" />
     </Style>
 
@@ -268,7 +273,7 @@
 
     <Style x:Key="SheetSwitchLabel"
            TargetType="Label">
-        <Setter Property="TextColor" Value="{StaticResource PrimaryTextColor}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource PrimaryTextColor}, Dark={StaticResource DarkPrimaryTextColor}}" />
         <Setter Property="FontSize" Value="12" />
         <Setter Property="VerticalTextAlignment" Value="Center" />
     </Style>
@@ -289,10 +294,10 @@
         <Setter Property="HeightRequest" Value="32" />
         <Setter Property="CornerRadius" Value="0" />
         <Setter Property="BorderWidth" Value="1" />
-        <Setter Property="BorderColor" Value="{StaticResource GrayLighten1}" />
+        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource GrayLighten1}, Dark={StaticResource DarkDividerColor}}" />
         <Setter Property="FontSize" Value="12" />
         <Setter Property="BackgroundColor" Value="Transparent" />
-        <Setter Property="TextColor" Value="{StaticResource PrimaryTextColor}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource PrimaryTextColor}, Dark={StaticResource DarkPrimaryTextColor}}" />
     </Style>
 
     <!-- ================================================================================ -->
@@ -363,7 +368,7 @@
     <Style x:Key="TitleLabel"
            TargetType="Label">
         <Setter Property="Padding" Value="6,3" />
-        <Setter Property="TextColor" Value="{StaticResource PrimaryTextColor}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource PrimaryTextColor}, Dark={StaticResource DarkPrimaryTextColor}}" />
         <Setter Property="FontSize" Value="18" />
         <Setter Property="FontAttributes" Value="Bold" />
     </Style>
@@ -371,14 +376,14 @@
     <Style x:Key="ValueLabel"
            TargetType="Label">
         <Setter Property="Padding" Value="6,3" />
-        <Setter Property="TextColor" Value="{StaticResource PrimaryTextColor}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource PrimaryTextColor}, Dark={StaticResource DarkPrimaryTextColor}}" />
         <Setter Property="FontSize" Value="16" />
     </Style>
 
     <Style x:Key="StatusLabel"
            TargetType="Label">
         <Setter Property="Padding" Value="6,3" />
-        <Setter Property="TextColor" Value="{StaticResource SecondaryTextColor}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource SecondaryTextColor}, Dark={StaticResource DarkSecondaryTextColor}}" />
         <Setter Property="FontSize" Value="13" />
         <Setter Property="MaxLines" Value="1" />
         <Setter Property="LineBreakMode" Value="TailTruncation" />
@@ -390,21 +395,129 @@
     <!-- Calendar -->
     <!-- ================================================================================ -->
 
-    <!-- Calendar style declared as a resource; the view refers to it with CalendarStyle="{StaticResource StampCalendarStyle}" -->
-    <clam:CalendarStyle x:Key="AgendaCalendarStyle"
-                        DateNumberFontSize="13" DateNumberMargin="2" DateNumberSize="20" DateRowHeight="22"
-                        EventFontSize="10" EventRowHeight="13" HeaderHeight="40" SlotRowHeight="15"
-                        WeekdayHeaderHeight="26" />
+    <Style TargetType="clam:ClamCalendarView"
+           BasedOn="{StaticResource ClamCalendarTheme}" />
 
-    <clam:CalendarStyle x:Key="CompactCalendarStyle"
-                        DateNumberFontSize="13" DateNumberShape="Circle" DateNumberSize="26" DateRowHeight="26"
-                        EventDisplayMode="Dots" EventDotSize="5" GridLineMode="None" HeaderFontSize="16"
-                        HeaderHeight="40" SlotRowHeight="10" TodayMarkStyle="Outline" TodayTextColor="#1F1F1F"
-                        WeekdayHeaderHeight="24" />
+    <!-- Looks of the calendar as ordinary MAUI styles; a view refers to one with Style="{StaticResource StampCalendar}" -->
+    <Style x:Key="AgendaCalendar"
+           TargetType="clam:ClamCalendarView"
+           BasedOn="{StaticResource ClamCalendarTheme}">
+        <Setter Property="DateNumberFontSize" Value="13" />
+        <Setter Property="DateNumberMargin" Value="2" />
+        <Setter Property="DateNumberSize" Value="20" />
+        <Setter Property="DateRowHeight" Value="22" />
+        <Setter Property="EventFontSize" Value="10" />
+        <Setter Property="EventRowHeight" Value="13" />
+        <Setter Property="HeaderHeight" Value="40" />
+        <Setter Property="SlotRowHeight" Value="15" />
+        <Setter Property="WeekdayHeaderHeight" Value="26" />
+    </Style>
 
-    <clam:CalendarStyle x:Key="StampCalendarStyle"
-                        FontFamily="sans-serif"
-                        DateNumberFontSize="15" MonthIndicatorColor="#12000000" MonthIndicatorFontSize="140" SelectedDayBackground="#F57C00"
-                        TodayBackground="#1E88E5" />
+    <Style x:Key="CompactCalendar"
+           TargetType="clam:ClamCalendarView"
+           BasedOn="{StaticResource ClamCalendarTheme}">
+        <Setter Property="DateNumberFontSize" Value="13" />
+        <Setter Property="DateNumberShape" Value="Circle" />
+        <Setter Property="DateNumberSize" Value="26" />
+        <Setter Property="DateRowHeight" Value="26" />
+        <Setter Property="EventDisplayMode" Value="Dots" />
+        <Setter Property="EventDotSize" Value="5" />
+        <Setter Property="GridLineMode" Value="None" />
+        <Setter Property="HeaderFontSize" Value="16" />
+        <Setter Property="HeaderHeight" Value="40" />
+        <Setter Property="SlotRowHeight" Value="10" />
+        <Setter Property="TodayMarkStyle" Value="Outline" />
+        <Setter Property="TodayTextColor" Value="#1F1F1F" />
+        <Setter Property="WeekdayHeaderHeight" Value="24" />
+    </Style>
+
+    <Style x:Key="StampCalendar"
+           TargetType="clam:ClamCalendarView"
+           BasedOn="{StaticResource ClamCalendarTheme}">
+        <Setter Property="FontFamily" Value="sans-serif" />
+        <Setter Property="DateNumberFontSize" Value="15" />
+        <Setter Property="MonthIndicatorColor" Value="#12000000" />
+        <Setter Property="MonthIndicatorFontSize" Value="140" />
+        <Setter Property="SelectedDayBackground" Value="#F57C00" />
+        <Setter Property="TodayBackground" Value="#1E88E5" />
+    </Style>
+
+    <!-- Themes of the style screen -->
+    <Style x:Key="DarkCalendar"
+           TargetType="clam:ClamCalendarView">
+        <Setter Property="BackgroundColor" Value="#121212" />
+        <Setter Property="GridLineColor" Value="#333333" />
+        <Setter Property="WeekdayTextColor" Value="#E0E0E0" />
+        <Setter Property="SaturdayTextColor" Value="#64B5F6" />
+        <Setter Property="SundayTextColor" Value="#EF5350" />
+        <Setter Property="HolidayTextColor" Value="#EF5350" />
+        <Setter Property="OutsideMonthTextColor" Value="#616161" />
+        <Setter Property="OutsideMonthBackground" Value="#1A1A1A" />
+        <Setter Property="WeekendBackground" Value="#1E1E24" />
+        <Setter Property="HolidayBackground" Value="#2A1E1E" />
+        <Setter Property="TodayBackground" Value="White" />
+        <Setter Property="TodayTextColor" Value="Black" />
+        <Setter Property="SelectedDayBackground" Value="#90CAF9" />
+        <Setter Property="SelectedDayTextColor" Value="Black" />
+        <Setter Property="RangeBackground" Value="#263238" />
+        <Setter Property="DisabledDayTextColor" Value="#424242" />
+        <Setter Property="DayLabelTextColor" Value="#9E9E9E" />
+        <Setter Property="OverflowTextColor" Value="#9E9E9E" />
+        <Setter Property="StampColor" Value="#E0E0E0" />
+        <Setter Property="HeaderBackground" Value="#1F1F1F" />
+        <Setter Property="HeaderTextColor" Value="White" />
+        <Setter Property="NavigationButtonColor" Value="#E0E0E0" />
+        <Setter Property="WeekdayHeaderBackground" Value="#1F1F1F" />
+        <Setter Property="WeekdayHeaderTextColor" Value="#BDBDBD" />
+        <Setter Property="SaturdayHeaderTextColor" Value="#64B5F6" />
+        <Setter Property="SundayHeaderTextColor" Value="#EF5350" />
+        <Setter Property="MonthIndicatorColor" Value="#10FFFFFF" />
+    </Style>
+
+    <Style x:Key="AccentCalendar"
+           TargetType="clam:ClamCalendarView">
+        <Setter Property="GridLineMode" Value="Horizontal" />
+        <Setter Property="GridLineColor" Value="#E3E6F5" />
+        <Setter Property="DateNumberShape" Value="Circle" />
+        <Setter Property="TodayMarkStyle" Value="Fill" />
+        <Setter Property="SelectedMarkStyle" Value="Outline" />
+        <Setter Property="TodayMarkOnSelected" Value="True" />
+        <Setter Property="EventCornerRadius" Value="8" />
+        <Setter Property="SaturdayTextColor" Value="#5C6BC0" />
+        <Setter Property="SundayTextColor" Value="#3F51B5" />
+        <Setter Property="HolidayTextColor" Value="#3F51B5" />
+        <Setter Property="OutsideMonthTextColor" Value="#C5CAE9" />
+        <Setter Property="OutsideMonthBackground" Value="White" />
+        <Setter Property="WeekendBackground" Value="#F6F7FC" />
+        <Setter Property="HolidayBackground" Value="#EDEFF9" />
+        <Setter Property="TodayBackground" Value="#3F51B5" />
+        <Setter Property="TodayTextColor" Value="White" />
+        <Setter Property="SelectedDayBackground" Value="#3F51B5" />
+        <Setter Property="SelectedDayTextColor" Value="#3F51B5" />
+        <Setter Property="RangeBackground" Value="#E8EAF6" />
+        <Setter Property="DayLabelTextColor" Value="#7986CB" />
+        <Setter Property="OverflowTextColor" Value="#7986CB" />
+        <Setter Property="StampColor" Value="#3F51B5" />
+        <Setter Property="HeaderTextColor" Value="#3F51B5" />
+        <Setter Property="NavigationButtonColor" Value="#3F51B5" />
+        <Setter Property="WeekdayHeaderBackground" Value="#EEF0FA" />
+        <Setter Property="WeekdayHeaderTextColor" Value="#5C6BC0" />
+        <Setter Property="SaturdayHeaderTextColor" Value="#5C6BC0" />
+        <Setter Property="SundayHeaderTextColor" Value="#3F51B5" />
+        <Setter Property="MonthIndicatorColor" Value="#0D3F51B5" />
+    </Style>
+
+    <Style x:Key="MinimalCalendar"
+           TargetType="clam:ClamCalendarView">
+        <Setter Property="GridLineMode" Value="None" />
+        <Setter Property="EventDisplayMode" Value="Dots" />
+        <Setter Property="DateNumberShape" Value="Circle" />
+        <Setter Property="TodayMarkStyle" Value="Outline" />
+        <Setter Property="TodayMarkOnSelected" Value="True" />
+        <Setter Property="TodayTextColor" Value="#1F1F1F" />
+        <Setter Property="DateNumberBold" Value="False" />
+        <Setter Property="WeekendBackground" Value="Transparent" />
+        <Setter Property="HolidayBackground" Value="Transparent" />
+    </Style>
 
 </ResourceDictionary>

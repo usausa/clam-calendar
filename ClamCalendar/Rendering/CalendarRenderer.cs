@@ -13,7 +13,7 @@ using SkiaSharp.Views.Maui;
 
 internal sealed class CalendarRenderer : IDisposable
 {
-    private readonly CalendarStyle style;
+    private CalendarStyle style;
     private readonly FontResolver fonts;
     private readonly SKPaint paint = new() { IsAntialias = true };
     private readonly SKPaint fillPaint = new() { IsAntialias = false };
@@ -28,11 +28,11 @@ internal sealed class CalendarRenderer : IDisposable
 
     public CalendarRenderer(CalendarStyle style)
     {
-        ArgumentNullException.ThrowIfNull(style);
-        style.Validate();
         this.style = style;
         fonts = new FontResolver(style.FontFamily);
     }
+
+    public void UpdateStyle(CalendarStyle value) => style = value;
 
     public void Dispose()
     {

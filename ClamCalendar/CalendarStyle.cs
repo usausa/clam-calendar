@@ -1,7 +1,6 @@
 namespace ClamCalendar;
 
-// Can be a XAML resource; treat it as immutable once assigned and replace it with a with expression
-public sealed record CalendarStyle
+internal sealed record CalendarStyle
 {
     public string FontFamily { get; set; } = "sans-serif";
 
@@ -124,38 +123,4 @@ public sealed record CalendarStyle
     public CalendarEventDisplayMode EventDisplayMode { get; set; } = CalendarEventDisplayMode.Bars;
 
     public int MaxVisibleDots { get; set; } = 4;
-
-    internal static bool ValidateValue(object? value)
-    {
-        ArgumentNullException.ThrowIfNull(value, nameof(CalendarStyle));
-        ((CalendarStyle)value).Validate();
-        return true;
-    }
-
-    internal void Validate()
-    {
-        if (!IsPositive(HeaderFontSize) || !IsPositive(WeekdayHeaderFontSize) || !IsPositive(DateNumberFontSize) || !IsPositive(EventFontSize) || !IsPositive(DayLabelFontSize) || !IsPositive(WeekNumberFontSize) || !IsPositive(MonthIndicatorFontSize))
-        {
-            throw new ArgumentException("Font sizes must be positive finite values.");
-        }
-
-        if (!IsPositive(HeaderHeight) || !IsPositive(WeekdayHeaderHeight) || !IsPositive(DateRowHeight) || !IsPositive(SlotRowHeight) || !IsPositive(EventRowHeight) || !IsPositive(DateNumberSize) || !IsPositive(DateNumberMarkWidth) || !IsPositive(GridLineWidth) || !IsPositive(EventDotSize) || !IsPositive(WeekNumberWidth) || !IsPositive(NavigationButtonWidth) || !IsPositive(TodayButtonWidth))
-        {
-            throw new ArgumentException("Heights and widths must be positive finite values.");
-        }
-
-        if (!IsNonNegative(DateNumberMargin) || !IsNonNegative(StampMarginEdge) || !IsNonNegative(EventCornerRadius) || !IsNonNegative(EventPadding) || !IsNonNegative(EventDotSpacing))
-        {
-            throw new ArgumentException("Margins and paddings must be finite values of zero or more.");
-        }
-
-        if (MaxVisibleDots < 0)
-        {
-            throw new ArgumentException("MaxVisibleDots must be zero or more.");
-        }
-    }
-
-    private static bool IsPositive(double value) => Double.IsFinite(value) && (value > 0);
-
-    private static bool IsNonNegative(double value) => Double.IsFinite(value) && (value >= 0);
 }

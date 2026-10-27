@@ -18,7 +18,7 @@
           RowDefinitions="2*,Auto,*">
         <!-- The library has no list of its own; the events of the tapped day feed the CollectionView below -->
         <clam:ClamCalendarView Grid.Row="0"
-                               CalendarStyle="{StaticResource AgendaCalendarStyle}"
+                               Style="{StaticResource AgendaCalendar}"
                                DayAppearances="{Binding DayAppearances}"
                                DayTappedCommand="{Binding DayTappedCommand}"
                                DisplayDate="{Binding DisplayDate, Mode=TwoWay}"

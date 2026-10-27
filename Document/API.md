@@ -30,14 +30,13 @@
 | `NavigationButtonsVisible` | `bool` | `true` | ✓ | Previous and next buttons |
 | `TodayButtonVisible` | `bool` | `false` | ✓ | Today button next to the next button. The title stays centered in the header whether or not it is shown, and the button is drawn over the title |
 | `HeaderFormat` | `string?` | `null` | ✓ | Format of the first day of the month for the title: composite when it contains `{` (`{0:yyyy/MM} plan`), otherwise a format string (`yyyy/MM`); `null` uses `YearMonthPattern` of the culture |
-| `HeaderFormatter` | `Func<CalendarMonth, string>?` | `null` | | Title text from code; used before `HeaderFormat` |
-| `DayPainter` | `Action<SKCanvas, CalendarDayPaintContext>?` | `null` | | Draws over each day of the month (see below) |
+| `HeaderFormatter` | `Func<CalendarMonth, string>?` | `null` | ✓ | Title text from code; used before `HeaderFormat` |
+| `DayPainter` | `Action<SKCanvas, CalendarDayPaintContext>?` | `null` | ✓ | Draws over each day of the month (see below) |
 | `PrevButtonText`, `NextButtonText`, `TodayButtonText` | `string` | `◀`, `▶`, `Today` | ✓ | Button texts |
 | `WeekdayHeaderVisible` | `bool` | `true` | ✓ | Weekday row |
 | `WeekdayNameFormat` | `CalendarWeekdayNameFormat` | `Initial` | ✓ | `Initial` (M / 月), `Abbreviated` (Mon) or `Full` (Monday) |
 | `MonthIndicatorVisible` | `bool` | `false` | ✓ | Month number watermark behind the cells |
 | `WeekNumberVisible` | `bool` | `false` | ✓ | Narrow column on the left with the ISO 8601 week of the Thursday of the row, so the number does not shift with `FirstDayOfWeek`; a tap of the column is a tap of the first day of the row |
-| `CalendarStyle` | `CalendarStyle` | `new()` | ✓ | Fonts, sizes and colors |
 | `SelectionMode` | `CalendarSelectionMode` | `None` | ✓ | `None`, `SingleDate`, `MultipleDates`, `DateRange` or `Week` |
 | `SelectedDate` | `DateOnly?` | `null` | ✓ TwoWay | Selection of `SingleDate` |
 | `SelectedDates` | `ObservableCollection<DateOnly>` | empty | ✓ | Selection of `MultipleDates` and `Week`; bind a collection of the view model to share it |
@@ -63,7 +62,6 @@
 | `GetDateNumberBounds(DateOnly date)` | `Rect?` | Date number of the date in DIP, same `null` cases |
 | `ClearSelection()` | `void` | Clears the selection of every mode |
 | `CancelInteraction()` | `void` | Stops the current gesture |
-| `ApplyStyle()` | `void` | Recreates the renderer and redraws after the content of `CalendarStyle` was changed in place |
 | `InvalidateSurface()` | `void` | Redraws |
 | `Dispose()` | `void` | Releases the timers, subscriptions and native resources |
 
@@ -119,11 +117,12 @@ Calendar.DayPainter = (canvas, context) =>
 `DayAreaBounds`, `GetDayBounds` and `GetDateNumberBounds` give the same geometry in DIP for MAUI views placed over the calendar by hand, which is what a day needs when the content on it is tapped.  
 `DisplayDateChanged` is raised before the application loaded the data of the new range, so place them on the change of `Month` instead.  
 
-## 🎨 CalendarStyle
+## 🎨 Appearance
 
-A style can be a XAML resource.  
-Treat it as immutable once assigned and replace it with a `with` expression to change it, or call `ApplyStyle()` after changing it in place.  
-Invalid sizes throw `ArgumentException` when the style is assigned or `ApplyStyle()` is called, and `null` throws `ArgumentNullException`.  
+The look is set with ordinary bindable properties on the view; there is no style object.  
+The calendar builds a snapshot of them when one changes, so a frame reads one object and allocates nothing.  
+Each size is validated when it is assigned: the font sizes, the heights, the widths and the mark width must be positive, the margins, the paddings and the dot spacing zero or more, and `MaxVisibleDots` zero or more; otherwise `ArgumentOutOfRangeException` is thrown.  
+The background of the calendar is `BackgroundColor` of the view; `null` fills it with white.  
 Sizes are in DIP.  
 
 | Name | Type | Default | Description |
@@ -141,7 +140,8 @@ Sizes are in DIP.
 | `NavigationButtonWidth`, `TodayButtonWidth` | `double` | `44`, `64` | Widths of the header buttons |
 | `GridLineWidth` | `double` | `0.5` | Width of the grid lines |
 | `WeekNumberWidth` | `double` | `24` | Width of the week number column; the day columns share what is left |
-| `Background`, `GridLineColor` | `Color` | `White`, `#E0E0E0` | Body background and cell lines |
+| `BackgroundColor` | `Color?` | `null` | Background of the whole calendar; `null` fills it with white. This is the ordinary MAUI property of the view |
+| `GridLineColor` | `Color` | `#E0E0E0` | Cell lines |
 | `WeekdayTextColor`, `SaturdayTextColor`, `SundayTextColor`, `HolidayTextColor` | `Color` | `#1F1F1F`, `#2196F3`, `#E53935`, `#E53935` | Date number colors by day kind |
 | `OutsideMonthTextColor`, `OutsideMonthBackground` | `Color` | `#BDBDBD`, `#F2F2F2` | Days of the neighboring months |
 | `WeekendBackground`, `HolidayBackground` | `Color` | `#FFF1F1`, `#FFF1F1` | Cell backgrounds of weekends and holidays |
@@ -162,6 +162,28 @@ Sizes are in DIP.
 | `GridLineMode` | `CalendarGridLineMode` | `All` | Lines of the body: `All`, `Horizontal`, `Vertical` or `None`; the separators under the header and the weekday row are always drawn |
 | `EventDisplayMode` | `CalendarEventDisplayMode` | `Bars` | `Bars` draws the bars and the `+N` of the slot rows, `Dots` draws one dot per event of the day in the first slot row |
 | `MaxVisibleDots` | `int` | `4` | Dots per day of `Dots`; `0` is unlimited and the events over the limit are not drawn |
+
+### ClamCalendarThemes
+
+The library ships a `ResourceDictionary` whose keyed style carries both themes with `{AppThemeBinding}`, so merging it once is enough.  
+
+| Key | Target | Description |
+|---|---|---|
+| `ClamCalendarTheme` | `ClamCalendarView` | The twenty-eight colors of both themes; the sizes, the marks and the line mode are left to the application |
+
+```xml
+<Application.Resources>
+    <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries>
+            <clam:ClamCalendarThemes />
+        </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+</Application.Resources>
+
+<Style TargetType="clam:ClamCalendarView" BasedOn="{StaticResource ClamCalendarTheme}" />
+```
+
+⚠️ MAUI picks the most specific implicit style and does not merge two of them, so base an application style on the key instead of writing a second implicit style for the same type.
 
 ## 🏗 CalendarMonthBuilder
 

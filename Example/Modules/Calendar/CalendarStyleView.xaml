@@ -39,7 +39,7 @@
             </Grid>
 
             <clam:ClamCalendarView Grid.Row="1"
-                                   CalendarStyle="{Binding CalendarStyle}"
+                                   Style="{Binding CalendarTheme}"
                                    DisplayDate="{Binding DisplayDate, Mode=TwoWay}"
                                    DisplayDateChangedCommand="{Binding DisplayDateChangedCommand}"
                                    Events="{Binding Events}"

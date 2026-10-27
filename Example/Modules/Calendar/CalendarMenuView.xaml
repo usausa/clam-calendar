@@ -10,7 +10,9 @@
              s:BindingContextResolver.Type="{x:Type module:CalendarMenuViewModel}"
              shell:ShellProperty.Title="ClamCalendar"
              shell:ShellProperty.Function1Text="Exit"
-             shell:ShellProperty.Function1Enabled="True">
+             shell:ShellProperty.Function2Text="Theme"
+             shell:ShellProperty.Function1Enabled="True"
+             shell:ShellProperty.Function2Enabled="True">
 
     <Grid Style="{StaticResource MenuGrid}"
           RowDefinitions="*,*,*,*,*,*,*">

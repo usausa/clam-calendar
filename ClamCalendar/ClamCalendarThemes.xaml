@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                    xmlns:clam="clr-namespace:ClamCalendar"
+                    x:Class="ClamCalendar.ClamCalendarThemes">
+
+    <Style x:Key="ClamCalendarTheme"
+           TargetType="clam:ClamCalendarView">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=White, Dark=#121212}" />
+        <Setter Property="GridLineColor" Value="{AppThemeBinding Light=#E0E0E0, Dark=#333333}" />
+        <Setter Property="WeekdayTextColor" Value="{AppThemeBinding Light=#1F1F1F, Dark=#E0E0E0}" />
+        <Setter Property="SaturdayTextColor" Value="{AppThemeBinding Light=#2196F3, Dark=#64B5F6}" />
+        <Setter Property="SundayTextColor" Value="{AppThemeBinding Light=#E53935, Dark=#EF5350}" />
+        <Setter Property="HolidayTextColor" Value="{AppThemeBinding Light=#E53935, Dark=#EF5350}" />
+        <Setter Property="OutsideMonthTextColor" Value="{AppThemeBinding Light=#BDBDBD, Dark=#616161}" />
+        <Setter Property="OutsideMonthBackground" Value="{AppThemeBinding Light=#F2F2F2, Dark=#1A1A1A}" />
+        <Setter Property="WeekendBackground" Value="{AppThemeBinding Light=#FFF1F1, Dark=#1E1E24}" />
+        <Setter Property="HolidayBackground" Value="{AppThemeBinding Light=#FFF1F1, Dark=#2A1E1E}" />
+        <Setter Property="TodayBackground" Value="{AppThemeBinding Light=Black, Dark=White}" />
+        <Setter Property="TodayTextColor" Value="{AppThemeBinding Light=White, Dark=Black}" />
+        <Setter Property="SelectedDayBackground" Value="{AppThemeBinding Light=#1A73E8, Dark=#90CAF9}" />
+        <Setter Property="SelectedDayTextColor" Value="{AppThemeBinding Light=White, Dark=Black}" />
+        <Setter Property="RangeBackground" Value="{AppThemeBinding Light=#BDD7F5, Dark=#263238}" />
+        <Setter Property="DisabledDayTextColor" Value="{AppThemeBinding Light=#C0C0C0, Dark=#424242}" />
+        <Setter Property="DayLabelTextColor" Value="{AppThemeBinding Light=#757575, Dark=#9E9E9E}" />
+        <Setter Property="OverflowTextColor" Value="{AppThemeBinding Light=#757575, Dark=#9E9E9E}" />
+        <Setter Property="WeekNumberTextColor" Value="{AppThemeBinding Light=#757575, Dark=#9E9E9E}" />
+        <Setter Property="StampColor" Value="{AppThemeBinding Light=Black, Dark=#E0E0E0}" />
+        <Setter Property="HeaderBackground" Value="{AppThemeBinding Light=White, Dark=#1F1F1F}" />
+        <Setter Property="HeaderTextColor" Value="{AppThemeBinding Light=Black, Dark=White}" />
+        <Setter Property="NavigationButtonColor" Value="{AppThemeBinding Light=#333333, Dark=#E0E0E0}" />
+        <Setter Property="WeekdayHeaderBackground" Value="{AppThemeBinding Light=White, Dark=#1F1F1F}" />
+        <Setter Property="WeekdayHeaderTextColor" Value="{AppThemeBinding Light=#333333, Dark=#BDBDBD}" />
+        <Setter Property="SaturdayHeaderTextColor" Value="{AppThemeBinding Light=#2196F3, Dark=#64B5F6}" />
+        <Setter Property="SundayHeaderTextColor" Value="{AppThemeBinding Light=#E53935, Dark=#EF5350}" />
+        <Setter Property="MonthIndicatorColor" Value="{AppThemeBinding Light=#10000000, Dark=#10FFFFFF}" />
+    </Style>
+
+</ResourceDictionary>

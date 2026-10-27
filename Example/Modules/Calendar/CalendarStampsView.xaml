@@ -22,8 +22,8 @@
             <!-- Inside a ScrollView: vertical drags scroll the page, horizontal swipes on the calendar change the month -->
             <ScrollView Grid.Row="0">
                 <VerticalStackLayout>
-                    <clam:ClamCalendarView HeightRequest="560"
-                                           CalendarStyle="{StaticResource StampCalendarStyle}"
+                    <clam:ClamCalendarView Style="{StaticResource StampCalendar}"
+                                           HeightRequest="560"
                                            DayAppearances="{Binding DayAppearances}"
                                            DayLabels="{Binding DayLabels}"
                                            DayLongPressedCommand="{Binding DayLongPressedCommand}"

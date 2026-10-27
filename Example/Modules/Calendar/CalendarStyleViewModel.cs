@@ -2,12 +2,12 @@ namespace Example.Modules.Calendar;
 
 public sealed partial class CalendarStyleViewModel : AppViewModelBase
 {
-    private static readonly (string Name, CalendarStyle Style, bool WeekNumber)[] Themes =
+    private static readonly (string Name, string? Key, bool WeekNumber)[] Themes =
     [
-        ("Default", new CalendarStyle(), false),
-        ("Dark", CreateDarkStyle(), false),
-        ("Accent", CreateAccentStyle(), true),
-        ("Minimal", CreateMinimalStyle(), false)
+        ("Default", null, false),
+        ("Dark", "DarkCalendar", false),
+        ("Accent", "AccentCalendar", true),
+        ("Minimal", "MinimalCalendar", false)
     ];
 
     private int themeIndex;
@@ -28,7 +28,7 @@ public sealed partial class CalendarStyleViewModel : AppViewModelBase
     public partial DateOnly? SelectedDate { get; set; }
 
     [ObservableProperty]
-    public partial CalendarStyle CalendarStyle { get; set; } = Themes[0].Style;
+    public partial Style? CalendarTheme { get; set; }
 
     [ObservableProperty]
     public partial CalendarWeekdayNameFormat WeekdayNameFormat { get; set; }
@@ -110,8 +110,8 @@ public sealed partial class CalendarStyleViewModel : AppViewModelBase
     private void SelectTheme(string name)
     {
         themeIndex = Array.FindIndex(Themes, x => x.Name == name);
-        var (_, style, weekNumber) = Themes[themeIndex];
-        CalendarStyle = style;
+        var (_, key, weekNumber) = Themes[themeIndex];
+        CalendarTheme = key is null ? null : (Style)Application.Current!.Resources[key];
         WeekNumberVisible = weekNumber;
         ThemeName = name;
         Status = $"Theme  {name}";
@@ -142,81 +142,4 @@ public sealed partial class CalendarStyleViewModel : AppViewModelBase
         Events = SampleSchedule.CreateEvents(e.FirstDate, e.LastDate);
         Holidays = SampleHolidays.GetHolidays(e.FirstDate, e.LastDate);
     }
-
-    private static CalendarStyle CreateDarkStyle() => new()
-    {
-        Background = Color.FromArgb("#121212"),
-        GridLineColor = Color.FromArgb("#333333"),
-        WeekdayTextColor = Color.FromArgb("#E0E0E0"),
-        SaturdayTextColor = Color.FromArgb("#64B5F6"),
-        SundayTextColor = Color.FromArgb("#EF5350"),
-        HolidayTextColor = Color.FromArgb("#EF5350"),
-        OutsideMonthTextColor = Color.FromArgb("#616161"),
-        OutsideMonthBackground = Color.FromArgb("#1A1A1A"),
-        WeekendBackground = Color.FromArgb("#1E1E24"),
-        HolidayBackground = Color.FromArgb("#2A1E1E"),
-        TodayBackground = Colors.White,
-        TodayTextColor = Colors.Black,
-        SelectedDayBackground = Color.FromArgb("#90CAF9"),
-        SelectedDayTextColor = Colors.Black,
-        RangeBackground = Color.FromArgb("#263238"),
-        DisabledDayTextColor = Color.FromArgb("#424242"),
-        DayLabelTextColor = Color.FromArgb("#9E9E9E"),
-        OverflowTextColor = Color.FromArgb("#9E9E9E"),
-        StampColor = Color.FromArgb("#E0E0E0"),
-        HeaderBackground = Color.FromArgb("#1F1F1F"),
-        HeaderTextColor = Colors.White,
-        NavigationButtonColor = Color.FromArgb("#E0E0E0"),
-        WeekdayHeaderBackground = Color.FromArgb("#1F1F1F"),
-        WeekdayHeaderTextColor = Color.FromArgb("#BDBDBD"),
-        SaturdayHeaderTextColor = Color.FromArgb("#64B5F6"),
-        SundayHeaderTextColor = Color.FromArgb("#EF5350"),
-        MonthIndicatorColor = Color.FromArgb("#10FFFFFF")
-    };
-
-    private static CalendarStyle CreateMinimalStyle() => new()
-    {
-        GridLineMode = CalendarGridLineMode.None,
-        EventDisplayMode = CalendarEventDisplayMode.Dots,
-        DateNumberShape = CalendarDateNumberShape.Circle,
-        TodayMarkStyle = CalendarMarkStyle.Outline,
-        TodayMarkOnSelected = true,
-        TodayTextColor = Color.FromArgb("#1F1F1F"),
-        DateNumberBold = false,
-        WeekendBackground = Colors.Transparent,
-        HolidayBackground = Colors.Transparent
-    };
-
-    private static CalendarStyle CreateAccentStyle() => new()
-    {
-        GridLineMode = CalendarGridLineMode.Horizontal,
-        GridLineColor = Color.FromArgb("#E3E6F5"),
-        DateNumberShape = CalendarDateNumberShape.Circle,
-        TodayMarkStyle = CalendarMarkStyle.Fill,
-        SelectedMarkStyle = CalendarMarkStyle.Outline,
-        TodayMarkOnSelected = true,
-        EventCornerRadius = 8,
-        SaturdayTextColor = Color.FromArgb("#5C6BC0"),
-        SundayTextColor = Color.FromArgb("#3F51B5"),
-        HolidayTextColor = Color.FromArgb("#3F51B5"),
-        OutsideMonthTextColor = Color.FromArgb("#C5CAE9"),
-        OutsideMonthBackground = Colors.White,
-        WeekendBackground = Color.FromArgb("#F6F7FC"),
-        HolidayBackground = Color.FromArgb("#EDEFF9"),
-        TodayBackground = Color.FromArgb("#3F51B5"),
-        TodayTextColor = Colors.White,
-        SelectedDayBackground = Color.FromArgb("#3F51B5"),
-        SelectedDayTextColor = Color.FromArgb("#3F51B5"),
-        RangeBackground = Color.FromArgb("#E8EAF6"),
-        DayLabelTextColor = Color.FromArgb("#7986CB"),
-        OverflowTextColor = Color.FromArgb("#7986CB"),
-        StampColor = Color.FromArgb("#3F51B5"),
-        HeaderTextColor = Color.FromArgb("#3F51B5"),
-        NavigationButtonColor = Color.FromArgb("#3F51B5"),
-        WeekdayHeaderBackground = Color.FromArgb("#EEF0FA"),
-        WeekdayHeaderTextColor = Color.FromArgb("#5C6BC0"),
-        SaturdayHeaderTextColor = Color.FromArgb("#5C6BC0"),
-        SundayHeaderTextColor = Color.FromArgb("#3F51B5"),
-        MonthIndicatorColor = Color.FromArgb("#0D3F51B5")
-    };
 }
